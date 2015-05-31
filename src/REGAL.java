@@ -28,7 +28,7 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner{
 	}
 	
 	public LinkedList<double[][]> getTransitionSet() {
-		return transitionSet;U
+		return transitionSet;
 	}
 
 	public void setTransitionSet(LinkedList<double[][]> transitionSet) {
