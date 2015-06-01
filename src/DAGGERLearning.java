@@ -1,6 +1,7 @@
 import burlap.behavior.singleagent.Policy;
 //import burlap.behavior.singleagent.learning.lspi.SARSCollector;
 import burlap.behavior.singleagent.learning.lspi.SARSData;
+import burlap.oomdp.auxiliary.StateGenerator;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.core.State;
@@ -77,7 +78,7 @@ public class DAGGERLearning{
 		for(int i=0;i<this.maxInteration;i++){
 			
 			double beta=getBetai(i,p);
-			data=collector.collectDataFrom(this.initialState, rf, maxSteps, tf, null, teacher, student, beta);
+			data=collector.collectDataFrom( this.initialState,rf, maxSteps, tf, null, teacher, student, beta);
 			student=regal.run(data);
 		}
 	}
