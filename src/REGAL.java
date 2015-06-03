@@ -1,5 +1,5 @@
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import transitionupdate.StateTransition;
 import burlap.behavior.singleagent.Policy;
@@ -7,6 +7,7 @@ import burlap.behavior.singleagent.QValue;
 import burlap.behavior.singleagent.learning.lspi.SARSData;
 import burlap.behavior.singleagent.planning.OOMDPPlanner;
 import burlap.behavior.singleagent.planning.QComputablePlanner;
+import burlap.behavior.statehashing.StateHashTuple;
 import burlap.oomdp.auxiliary.StateParser;
 import burlap.oomdp.core.AbstractGroundedAction;
 import burlap.oomdp.core.Domain;
@@ -14,18 +15,23 @@ import burlap.oomdp.core.State;
 
 
 
+
 public class REGAL extends OOMDPPlanner implements QComputablePlanner{
 	
 	
 	
-	protected List<double[][]> transitionset;
-	protected List<double[][]> constrainedtransitionset;
 	protected SARSData data;
 	protected Domain domain;
-	protected StateParser stateparser;
-	protected StateTransition statetransition;
+	protected Set<StateHashTuple> states;
+	protected 
+	
+	
+	
+	
 	
 	public Policy run(SARSData data){
+		
+		
 		this.data=data;
 		
 		//pass the data set and transition set to the update class
@@ -40,6 +46,8 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner{
 		
 		//Select the best transition dynamics based on the constraints
 		double[][] max=maxGain();
+		
+		return null;
 		
 		
 	}
