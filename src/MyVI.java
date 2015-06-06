@@ -1,8 +1,8 @@
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import burlap.behavior.singleagent.planning.ActionTransitions;
@@ -14,8 +14,6 @@ import burlap.debugtools.DPrint;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
-import burlap.oomdp.singleagent.Action;
-import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.RewardFunction;
 
 
@@ -115,8 +113,9 @@ public class MyVI extends ValueFunctionPlanner{
 	
 	@Override
 	public void resetPlannerResults(){
-		super.resetPlannerResults();
-		this.foundReachableStates = false;
+		//super.resetPlannerResults();
+		this.valueFunction.clear();
+		//this.foundReachableStates = false;
 		this.hasRunVI = false;
 	}
 	
@@ -158,47 +157,6 @@ public class MyVI extends ValueFunctionPlanner{
 		
 	}
 	
-	
-	
-	
-	/* (non-Javadoc)
-	 * @see burlap.behavior.singleagent.planning.ValueFunctionPlanner#getActionsTransitions(burlap.behavior.statehashing.StateHashTuple)
-	 */
-	@Override
-	protected List <ActionTransitions> getActionsTransitions(StateHashTuple sh){
-		List <ActionTransitions> allTransitions = transitionDynamics.get(sh);
-		
-		if(allTransitions == null){
-			//need to create them
-			
-			//indicate how this state is stored
-			mapToStateIndex.put(sh, sh);
-			
-			
-			//first get all grounded actions for this state
-			/*
-			List <GroundedAction> gas = new ArrayList<GroundedAction>();
-			for(Action a : actions){
-				gas.addAll(sh.s.getAllGroundedActionsFor(a));
-			}*/
-			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.s);
-			
-			//now add transitions
-			allTransitions = new ArrayList<ActionTransitions>(gas.size());
-			for(GroundedAction ga : gas){
-				ActionTransitions at = new ActionTransitions(sh.s, ga, hashingFactory);
-				allTransitions.add(at);
-			}
-			
-			//set it if we're caching
-			if(this.useCachedTransitions){
-				transitionDynamics.put(sh, allTransitions);
-			}
-			
-		}
-		
-		return allTransitions;
-	}
 
 
 	/**
@@ -330,5 +288,23 @@ public class MyVI extends ValueFunctionPlanner{
 	}
 
 	
+	public Map<StateHashTuple,StateHashTuple> getmapToStateIndex(){
+		return this.mapToStateIndex;
+
+	}
+	
+	public void setmapToStateIndex(Map<StateHashTuple,StateHashTuple> mapToStateIndex){
+		
+		this.mapToStateIndex=mapToStateIndex;
+	}
+	
+	public Map<StateHashTuple,List<ActionTransitions>> gettransitionDynamics(){
+		return this.transitionDynamics;
+	}
+	
+	public void settransitionDynamics( Map<StateHashTuple,List<ActionTransitions>> transitionDynamics){
+		
+		this.transitionDynamics=transitionDynamics;
+	}
 	
 }
