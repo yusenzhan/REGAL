@@ -79,7 +79,7 @@ public class DAGGERLearning{
 			
 			double beta=getBetai(i,p);
 			data=collector.collectDataFrom( this.initialState,rf, maxSteps, tf, null, teacher, student, beta);
-			student=regal.run(data);
+			student=regal.runexp(data);
 		}
 	}
 	

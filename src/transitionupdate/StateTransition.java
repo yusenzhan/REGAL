@@ -26,10 +26,16 @@ public class StateTransition {
 	protected Set<StateHashTuple> states;
 	protected Map<StateHashTuple, StateHashTuple> mapToStateIndex;
 	protected Map<StateHashTuple, Integer> mapToIntIndex;
+	protected Map<Integer, StateHashTuple> mapIndexToState;
+	protected Map<Action, Integer> mapActionToIntIndex;
 	protected List<Action> actions;
 	protected StateHashFactory hashingFactory;
 	protected List<Map<StateHashTuple, List<ActionTransitions>>> transitionList;
 	protected List<Map<StateHashTuple, List<ActionTransitions>>> transitionCountList;
+	protected List<Map<StateHashTuple, List<ActionTransitions>>> constrainedtransitionList;
+	protected List<Map<StateHashTuple, List<ActionTransitions>>> constrainedtransitionCountList;
+	protected List<double[][][]> transitionDoubleList;
+	protected List<double[][][]> transitionDoubleCountList;
 	protected Map<StateHashTuple, List<ActionTransitions>> InitialTD;
 
 	/**
@@ -52,7 +58,18 @@ public class StateTransition {
 		this.hashingFactory = hashingFactory;
 		this.transitionList = new ArrayList<Map<StateHashTuple, List<ActionTransitions>>>();
 		this.transitionCountList = new ArrayList<Map<StateHashTuple, List<ActionTransitions>>>();
+		this.transitionDoubleList = new ArrayList<double[][][]>();
+		this.transitionDoubleCountList = new ArrayList<double[][][]>();
+		this.constrainedtransitionList.clear();
+		this.constrainedtransitionCountList.clear();
 		this.InitialTD = null;
+
+		// initilized the map from index to state
+		for (StateHashTuple s : states) {
+			this.mapIndexToState.put(this.mapToIntIndex.get(s), s);
+
+		}
+
 	}
 
 	/**
@@ -92,31 +109,50 @@ public class StateTransition {
 	}
 
 	/**
-	 * update the transition set according to the data and transitions
+	 * update the transition set according to the data and transitions class
 	 * **/
 	public void updateTransitionSet() {
-		// if map is empty, we need to initalized it.
-		if (this.transitionCountList.isEmpty()) {
-			
+		// if list is empty, we need to initialized it.
+		if (this.transitionCountList.isEmpty()
+				&& this.transitionCountList.isEmpty()) {
+
 			this.transitionList.add(InitialTD);
 			this.transitionCountList.add(InitialTD);
-		} else {// update the transition set
-				// set the base as the last element of the list
-			Map<StateHashTuple, List<ActionTransitions>> tempCountTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
-					this.transitionList.get(this.transitionList.size() - 1));
-			for (SARS sars : data.dataset) {
-				StateHashTuple sh = this.hashingFactory.hashState(sars.s);
-				StateHashTuple shp = this.hashingFactory.hashState(sars.sp);
-				List<ActionTransitions> tempCountAT = tempCountTD.get(sh);
-				// find the transitions by action
-				for (ActionTransitions ats : tempCountAT) {
-					if (ats.matchingTransitions(sars.a)) {
-						for (HashedTransitionProbability htp : ats.transitions) {
-							if (htp.sh.equals(shp)) {
-								htp.p+=1.0;
-							}
+		}
 
+		// update the transition set
+		// set the base as the last element of the list
+		Map<StateHashTuple, List<ActionTransitions>> tempCountTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
+				this.transitionCountList.get(this.transitionCountList.size() - 1));
+		Map<StateHashTuple, List<ActionTransitions>> tempTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
+				this.transitionList.get(this.transitionList.size() - 1));
+		for (SARS sars : data.dataset) {
+			StateHashTuple sh = this.hashingFactory.hashState(sars.s);
+			StateHashTuple shp = this.hashingFactory.hashState(sars.sp);
+			List<ActionTransitions> tempCountATs = tempCountTD.get(sh);
+			// find the transitions by action
+			for (int i = 0; i < tempCountATs.size(); i++) {
+				ActionTransitions tempCountAT = tempCountATs.get(i);
+				if (tempCountAT.matchingTransitions(sars.a)) {
+
+					// update the counting matrix
+					double counter = 0.0;
+					for (int j = 0; j < tempCountAT.transitions.size(); i++) {
+						HashedTransitionProbability tempCountHTP = tempCountAT.transitions
+								.get(j);
+						counter += tempCountHTP.p;
+						if (tempCountHTP.sh.equals(shp)) {
+							tempCountHTP.p += 1.0;
 						}
+					}
+
+					// update the probability transitions
+					for (int k = 0; k < tempCountAT.transitions.size(); k++) {
+						HashedTransitionProbability tempCountHTP = tempCountAT.transitions
+								.get(k);
+						HashedTransitionProbability tempHTP = tempTD.get(sh)
+								.get(i).transitions.get(k);
+						tempHTP.p = tempCountHTP.p / counter;
 					}
 
 				}
@@ -128,9 +164,94 @@ public class StateTransition {
 	}
 
 	/**
+	 * update the transition set according to the data and doube[][][] array
+	 * **/
+	public void updateTransitionSetArray() {
+		// if List is empty, we need to initialized it.
+		if (this.transitionDoubleList.isEmpty()
+				&& this.transitionDoubleCountList.isEmpty()) {
+
+			this.transitionDoubleList.add(new double[states.size()][actions
+					.size()][states.size()]);
+			this.transitionDoubleCountList
+					.add(new double[states.size()][actions.size()][states
+							.size()]);
+		}
+
+		// update the transition set
+		// set the base as the last element of the list
+		/*
+		 * double[][][] tempCountTD = new
+		 * double[states.size()][actions.size()][states.size()]; double[][][]
+		 * tempTD = new double[states.size()][actions.size()][states.size()];
+		 * for (SARS sars : data.dataset) { StateHashTuple sh =
+		 * this.hashingFactory.hashState(sars.s); StateHashTuple shp =
+		 * this.hashingFactory.hashState(sars.sp); List<ActionTransitions>
+		 * tempCountATs = tempCountTD.get(sh); // find the transitions by action
+		 * for (int i = 0; i < tempCountATs.size(); i++) { ActionTransitions
+		 * tempCountAT = tempCountATs.get(i); if
+		 * (tempCountAT.matchingTransitions(sars.a)) {
+		 * 
+		 * // update the counting matrix double counter = 0.0; for (int j = 0; j
+		 * < tempCountAT.transitions.size(); i++) { HashedTransitionProbability
+		 * tempCountHTP = tempCountAT.transitions .get(j); counter +=
+		 * tempCountHTP.p; if (tempCountHTP.sh.equals(shp)) { tempCountHTP.p +=
+		 * 1.0; } }
+		 * 
+		 * // update the probability transitions for (int k = 0; k <
+		 * tempCountAT.transitions.size(); k++) { HashedTransitionProbability
+		 * tempCountHTP = tempCountAT.transitions .get(k);
+		 * HashedTransitionProbability tempHTP = tempTD.get(sh)
+		 * .get(i).transitions.get(k); tempHTP.p = tempCountHTP.p / counter; }
+		 * 
+		 * }
+		 * 
+		 * }
+		 * 
+		 * }
+		 */
+
+	}
+
+	/**
 	 * update the constrained transition set by the current transition set
 	 * **/
-	public void updateConstrainedTransitionSet() {
+	public void updateConstrainedTransitionSet(double delta) {
+
+		// make sure the constrained lists are empty
+		this.constrainedtransitionList.clear();
+		this.constrainedtransitionCountList.clear();
+
+		// get the last update for the MPD transitions
+		Map<StateHashTuple, List<ActionTransitions>> finalCountTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
+				this.transitionCountList.get(this.transitionCountList.size() - 1));
+		Map<StateHashTuple, List<ActionTransitions>> finalTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
+				this.transitionList.get(this.transitionList.size() - 1));
+
+		double temp1 = 12
+				* states.size()
+				* Math.log(2.0 * actions.size() * this.transitionList.size()
+						/ delta);
+		// calculate the L1-norm equation (2). Scan every MDP in the list to construct the constrained set
+		for (int i = 0; i < this.transitionList.size(); i++) {
+			Map<StateHashTuple, List<ActionTransitions>> tempCountTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
+					this.transitionCountList.get(i));
+			Map<StateHashTuple, List<ActionTransitions>> tempTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
+					this.transitionList.get(i));
+			
+			for (StateHashTuple sh : states) {
+				List<ActionTransitions> actionCounts=tempCountTDs.get(sh);
+				List<ActionTransitions> actionTransitions=tempTDs.get(sh);
+				
+				for(int j=0;j<actionTransitions.size();j++){
+					ActionTransitions actionCount=actionCounts.get(j);
+					ActionTransitions actionTransition6=actionTransitions.get(j);
+					
+					
+				}
+				
+			}
+		}
 
 	}
 

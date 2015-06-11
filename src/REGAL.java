@@ -24,6 +24,7 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner {
 	protected Map<StateHashTuple, Integer> mapToIntIndex;
 	protected MyVI vi;
 	protected StateTransition statetransition;
+	protected static double delta=0.8;
 	
 	
 	/**
@@ -54,17 +55,17 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner {
 	}
 	
 
-	public Policy run(SARSData data) {
+	public Policy runexp(SARSData data) { 
 
 		this.data = data;
 
 		// pass the data set and transition set to the update class
 		this.statetransition.setData(data);
 		// update transition set
-		statetransition.updateTransitionSet();
+		this.statetransition.updateTransitionSet();
 
 		// constructed the constrained transition set
-		statetransition.updateConstrainedTransitionSet();
+		statetransition.updateConstrainedTransitionSet(this.delta);
 
 		// Select the best transition probability based on the constraints transition set
 		vi.resetPlannerResults();
