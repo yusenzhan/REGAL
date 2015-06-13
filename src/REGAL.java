@@ -33,6 +33,7 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner {
 	protected static double gamma=1.0;
 	protected static double maxDelta=0.01;
 	
+	
 	/**
 	 * Initial the REGAL object
 	 * @param domain input the domain
