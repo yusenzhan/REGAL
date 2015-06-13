@@ -233,23 +233,65 @@ public class StateTransition {
 				* Math.log(2.0 * actions.size() * this.transitionList.size()
 						/ delta);
 		// calculate the L1-norm equation (2). Scan every MDP in the list to construct the constrained set
-		for (int i = 0; i < this.transitionList.size(); i++) {
+		for (int i = 0; i < this.transitionList.size(); i++) {			
+			boolean flag=true; //indicating that whether or not the MDP satisfies the constrained 
 			Map<StateHashTuple, List<ActionTransitions>> tempCountTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
 					this.transitionCountList.get(i));
 			Map<StateHashTuple, List<ActionTransitions>> tempTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
 					this.transitionList.get(i));
 			
 			for (StateHashTuple sh : states) {
+				//for the last MDP estimation
+				List<ActionTransitions> finalActionCounts=finalCountTDs.get(sh);
+				List<ActionTransitions> finalActionTransitions=finalTDs.get(sh);
+				//for the current estimation
 				List<ActionTransitions> actionCounts=tempCountTDs.get(sh);
 				List<ActionTransitions> actionTransitions=tempTDs.get(sh);
 				
 				for(int j=0;j<actionTransitions.size();j++){
+					//for the last MDP estimation
+					ActionTransitions finalActionCount=finalActionCounts.get(j);
+					ActionTransitions finalActionTransition=finalActionTransitions.get(j);
+					//for the current estimation
 					ActionTransitions actionCount=actionCounts.get(j);
-					ActionTransitions actionTransition6=actionTransitions.get(j);
+					ActionTransitions actionTransition=actionTransitions.get(j);
 					
+					double nsa=0.0;
+					double sumsa=0.0;
+					for(int k=0;k<actionCount.transitions.size();k++){
+						
+						//calculate N(s,a:t)
+						nsa+=finalActionCount.transitions.get(k).p;
+						
+						//calculate L1 norm
+						sumsa+=Math.abs(finalActionTransition.transitions.get(k).p-actionTransition.transitions.get(k).p);
+						
+					}
+					//max operator between N(s,a;t) and 1
+					if(nsa<1){
+						nsa=1.0;
+					}
+					
+					double upperbound=Math.sqrt(temp1/nsa);
+					
+					
+					if(sumsa>upperbound){// The MDP is not in the constrained set
+						flag=false;
+						break;
+					}
 					
 				}
+				// The MDP is not in the constrained set
+				if(flag==false){
+					break;
+				}
 				
+			}
+			
+			//the MDP is in the constraned set and add it into the constrained set
+			if(flag==true){
+				this.constrainedtransitionList.add(tempTDs);
+				this.constrainedtransitionCountList.add(tempCountTDs);
 			}
 		}
 
@@ -261,7 +303,16 @@ public class StateTransition {
 	 * **/
 
 	public Map<StateHashTuple, List<ActionTransitions>> selectTP() {
-
+		for(int i=0; i<this.constrainedtransitionList.size();i++){
+			Map<StateHashTuple, List<ActionTransitions>> tempCountTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
+					this.transitionCountList.get(i));
+			Map<StateHashTuple, List<ActionTransitions>> tempTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
+					this.transitionList.get(i));
+			
+			
+			
+			
+		}
 		return null;
 	}
 

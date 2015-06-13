@@ -49,14 +49,14 @@ public class DAGGERLearning{
 	 * @param p
 	 */
 	public DAGGERLearning(Domain domain, TerminalFunction tf,
-			RewardFunction rf, State initialState, REGAL regal, Policy teacher,
+			RewardFunction rf, State initialState, Policy teacher,
 			Policy student, int maxInteration, int maxSteps, double h, double p) {
 		super();
 		this.domain = domain;
 		this.tf = tf;
 		this.rf = rf;
 		this.initialState = initialState;
-		this.regal = regal;
+		this.regal = new REGAL(domain,initialState,tf,rf);
 		this.teacher = teacher;
 		this.student = student;
 		this.maxInteration = maxInteration;
@@ -79,7 +79,7 @@ public class DAGGERLearning{
 			
 			double beta=getBetai(i,p);
 			data=collector.collectDataFrom( this.initialState,rf, maxSteps, tf, null, teacher, student, beta);
-			student=regal.runexp(data);
+			student=regal.experiment(data);
 		}
 	}
 	

@@ -13,6 +13,8 @@ import burlap.behavior.statehashing.StateHashTuple;
 import burlap.oomdp.core.AbstractGroundedAction;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.State;
+import burlap.oomdp.core.TerminalFunction;
+import burlap.oomdp.singleagent.RewardFunction;
 
 public class REGAL extends OOMDPPlanner implements QComputablePlanner {
 
@@ -23,9 +25,13 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner {
 	protected Map<StateHashTuple, StateHashTuple> mapToStateIndex;
 	protected Map<StateHashTuple, Integer> mapToIntIndex;
 	protected MyVI vi;
+	protected TerminalFunction tf;
+	protected RewardFunction rf;
 	protected StateTransition statetransition;
 	protected static double delta=0.8;
-	
+	protected static int maxInteration=1000;
+	protected static double gamma=1.0;
+	protected static double maxDelta=0.01;
 	
 	/**
 	 * Initial the REGAL object
@@ -33,11 +39,11 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner {
 	 * @param input the initial state
 	 * 
 	 * **/
-	public REGAL(Domain domain, State initialstate) {
+	public REGAL(Domain domain, State initialstate, TerminalFunction tf,RewardFunction rf) {
 		super();
 		this.domain = domain;
 		this.initialState = initialstate;
-		vi = new MyVI(domain, rf, tf, 1, hashingFactory, 0.001, 100);
+		vi = new MyVI(domain, rf, tf, gamma, hashingFactory, maxDelta, maxInteration);
 		states = vi.getStateListFrom(this.initialState);
 		this.mapToStateIndex = vi.getmapToStateIndex();
 
@@ -55,12 +61,12 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner {
 	}
 	
 
-	public Policy runexp(SARSData data) { 
+	public Policy experiment(SARSData data){ 
 
 		this.data = data;
 
 		// pass the data set and transition set to the update class
-		this.statetransition.setData(data);
+		this.statetransition.setData(this.data);
 		// update transition set
 		this.statetransition.updateTransitionSet();
 
