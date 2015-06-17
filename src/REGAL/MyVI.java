@@ -89,6 +89,7 @@ public class MyVI extends ValueFunctionPlanner{
 		
 		this.maxDelta = maxDelta;
 		this.maxIterations = maxIterations;
+		this.optimalGain=new HashMap <StateHashTuple, Double>();
 		
 	}
 	

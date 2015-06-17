@@ -26,17 +26,12 @@ public class StateTransition {
 	protected SARSData data;
 	protected Set<StateHashTuple> states;
 	protected Map<StateHashTuple, StateHashTuple> mapToStateIndex;
-	protected Map<StateHashTuple, Integer> mapToIntIndex;
-	protected Map<Integer, StateHashTuple> mapIndexToState;
-	protected Map<Action, Integer> mapActionToIntIndex;
 	protected List<Action> actions;
 	protected StateHashFactory hashingFactory;
 	protected List<Map<StateHashTuple, List<ActionTransitions>>> transitionList;
 	protected List<Map<StateHashTuple, List<ActionTransitions>>> transitionCountList;
 	protected List<Map<StateHashTuple, List<ActionTransitions>>> constrainedtransitionList;
 	protected List<Map<StateHashTuple, List<ActionTransitions>>> constrainedtransitionCountList;
-	protected List<double[][][]> transitionDoubleList;
-	protected List<double[][][]> transitionDoubleCountList;
 	protected Map<StateHashTuple, List<ActionTransitions>> InitialTD;
 	protected MyVI vi;
 
@@ -49,29 +44,20 @@ public class StateTransition {
 	 *            input transition set in which the transition dynamics will be
 	 *            updated according to the data
 	 ***/
-	public StateTransition(Set<StateHashTuple> states,
-			Map<StateHashTuple, StateHashTuple> mapToStateIndex,
-			Map<StateHashTuple, Integer> mapToIntIndex, List<Action> actions,
-			StateHashFactory hashingFactory, MyVI vi) {
+	public StateTransition(Set<StateHashTuple> states, Map<StateHashTuple, StateHashTuple> mapToStateIndex,
+			Map<StateHashTuple, Integer> mapToIntIndex, List<Action> actions, StateHashFactory hashingFactory, MyVI vi) {
 		this.data = null;
 		this.states = states;
-		this.mapToIntIndex = mapToIntIndex;
 		this.actions = actions;
 		this.hashingFactory = hashingFactory;
 		this.transitionList = new ArrayList<Map<StateHashTuple, List<ActionTransitions>>>();
 		this.transitionCountList = new ArrayList<Map<StateHashTuple, List<ActionTransitions>>>();
-		this.transitionDoubleList = new ArrayList<double[][][]>();
-		this.transitionDoubleCountList = new ArrayList<double[][][]>();
+		this.constrainedtransitionList = new ArrayList<Map<StateHashTuple, List<ActionTransitions>>>();
+		this.constrainedtransitionCountList = new ArrayList<Map<StateHashTuple, List<ActionTransitions>>>();
 		this.constrainedtransitionList.clear();
 		this.constrainedtransitionCountList.clear();
 		this.InitialTD = null;
 		this.vi = vi;
-
-		// initilized the map from index to state
-		for (StateHashTuple s : states) {
-			this.mapIndexToState.put(this.mapToIntIndex.get(s), s);
-
-		}
 
 	}
 
@@ -84,21 +70,16 @@ public class StateTransition {
 				states.size());
 		for (StateHashTuple sh : states) {
 			// get all possible actions at state sh
-			List<GroundedAction> gas = Action
-					.getAllApplicableGroundedActionsFromActionList(
-							this.actions, sh.s);
+			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.s);
 			// set all possible action transition as zero
-			List<TransitionProbability> tps = new ArrayList<TransitionProbability>(
-					states.size());
+			List<TransitionProbability> tps = new ArrayList<TransitionProbability>(states.size());
 			for (StateHashTuple psh : states) {
 				tps.add(new TransitionProbability(psh.s, 0.0));
 			}
 
-			List<ActionTransitions> allTransitions = new ArrayList<ActionTransitions>(
-					gas.size());
+			List<ActionTransitions> allTransitions = new ArrayList<ActionTransitions>(gas.size());
 			for (GroundedAction ga : gas) {
-				ActionTransitions at = new ActionTransitions(ga, tps,
-						hashingFactory);
+				ActionTransitions at = new ActionTransitions(ga, tps, hashingFactory);
 				allTransitions.add(at);
 			}
 
@@ -116,8 +97,7 @@ public class StateTransition {
 	 * **/
 	public void updateTransitionSet() {
 		// if list is empty, we need to initialized it.
-		if (this.transitionCountList.isEmpty()
-				&& this.transitionCountList.isEmpty()) {
+		if (this.transitionCountList.isEmpty() && this.transitionCountList.isEmpty()) {
 
 			this.transitionList.add(InitialTD);
 			this.transitionCountList.add(InitialTD);
@@ -133,31 +113,45 @@ public class StateTransition {
 			StateHashTuple sh = this.hashingFactory.hashState(sars.s);
 			StateHashTuple shp = this.hashingFactory.hashState(sars.sp);
 			List<ActionTransitions> tempCountATs = tempCountTD.get(sh);
+			//System.out.println("ATs="+tempCountATs.size());
 			// find the transitions by action
 			for (int i = 0; i < tempCountATs.size(); i++) {
 				ActionTransitions tempCountAT = tempCountATs.get(i);
+				//System.out.println("AT"+tempCountAT.transitions.size());
+				boolean updateFlag=false;
 				if (tempCountAT.matchingTransitions(sars.a)) {
+					//System.out.println("Find the action!");
 
 					// update the counting matrix
 					double counter = 0.0;
-					for (int j = 0; j < tempCountAT.transitions.size(); i++) {
-						HashedTransitionProbability tempCountHTP = tempCountAT.transitions
-								.get(j);
-						counter += tempCountHTP.p;
+					//System.out.println("transition size="+tempCountAT.transitions.size());
+					for (int j = 0; j < tempCountAT.transitions.size(); j++) {
+						HashedTransitionProbability tempCountHTP = tempCountAT.transitions.get(j);
+						
 						if (tempCountHTP.sh.equals(shp)) {
 							tempCountHTP.p += 1.0;
 						}
+						counter += tempCountHTP.p;
+						//5System.out.println("counter="+counter+" j="+j);
+						
+						//System.out.println("Finish counting");
 					}
 
 					// update the probability transitions
 					for (int k = 0; k < tempCountAT.transitions.size(); k++) {
-						HashedTransitionProbability tempCountHTP = tempCountAT.transitions
-								.get(k);
-						HashedTransitionProbability tempHTP = tempTD.get(sh)
-								.get(i).transitions.get(k);
+						HashedTransitionProbability tempCountHTP = tempCountAT.transitions.get(k);
+						HashedTransitionProbability tempHTP = tempTD.get(sh).get(i).transitions.get(k);
 						tempHTP.p = tempCountHTP.p / counter;
+						//System.out.println("Finish update pro");
 					}
+					
+					updateFlag=true;
 
+				}
+				
+				// no need to update
+				if(updateFlag==true){
+					break;
 				}
 
 			}
@@ -165,7 +159,6 @@ public class StateTransition {
 		}
 
 	}
-
 
 	/**
 	 * update the constrained transition set by the current transition set
@@ -182,10 +175,7 @@ public class StateTransition {
 		Map<StateHashTuple, List<ActionTransitions>> finalTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
 				this.transitionList.get(this.transitionList.size() - 1));
 
-		double temp1 = 12
-				* states.size()
-				* Math.log(2.0 * actions.size() * this.transitionList.size()
-						/ delta);
+		double temp1 = 12 * states.size() * Math.log(2.0 * actions.size() * this.transitionList.size() / delta);
 		// calculate the L1-norm equation (2). Scan every MDP in the list to
 		// construct the constrained set
 		for (int i = 0; i < this.transitionList.size(); i++) {
@@ -198,24 +188,19 @@ public class StateTransition {
 
 			for (StateHashTuple sh : states) {
 				// for the last MDP estimation
-				List<ActionTransitions> finalActionCounts = finalCountTDs
-						.get(sh);
-				List<ActionTransitions> finalActionTransitions = finalTDs
-						.get(sh);
+				List<ActionTransitions> finalActionCounts = finalCountTDs.get(sh);
+				List<ActionTransitions> finalActionTransitions = finalTDs.get(sh);
 				// for the current estimation
 				List<ActionTransitions> actionCounts = tempCountTDs.get(sh);
 				List<ActionTransitions> actionTransitions = tempTDs.get(sh);
 
 				for (int j = 0; j < actionTransitions.size(); j++) {
 					// for the last MDP estimation
-					ActionTransitions finalActionCount = finalActionCounts
-							.get(j);
-					ActionTransitions finalActionTransition = finalActionTransitions
-							.get(j);
+					ActionTransitions finalActionCount = finalActionCounts.get(j);
+					ActionTransitions finalActionTransition = finalActionTransitions.get(j);
 					// for the current estimation
 					ActionTransitions actionCount = actionCounts.get(j);
-					ActionTransitions actionTransition = actionTransitions
-							.get(j);
+					ActionTransitions actionTransition = actionTransitions.get(j);
 
 					double nsa = 0.0;
 					double sumsa = 0.0;
@@ -225,8 +210,7 @@ public class StateTransition {
 						nsa += finalActionCount.transitions.get(k).p;
 
 						// calculate L1 norm
-						sumsa += Math.abs(finalActionTransition.transitions
-								.get(k).p
+						sumsa += Math.abs(finalActionTransition.transitions.get(k).p
 								- actionTransition.transitions.get(k).p);
 
 					}
@@ -267,56 +251,60 @@ public class StateTransition {
 	 * **/
 
 	public Map<StateHashTuple, List<ActionTransitions>> selectTP(double h) {
-		double spanbound=h;
-		double optimalGain=0.;
-		Map<StateHashTuple, List<ActionTransitions>> bestTP=null;
+		double spanbound = h;
+		double optimalGain = 0.;
+		Map<StateHashTuple, List<ActionTransitions>> bestTP = null;
 		for (int i = 0; i < this.constrainedtransitionList.size(); i++) {
 			Map<StateHashTuple, List<ActionTransitions>> tempTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
 					this.transitionList.get(i));
 			vi.resetPlannerResults();
 			vi.settransitionDynamics(tempTDs);
 			vi.runVI();
-			
-			Map<StateHashTuple, Double> bias=this.calcBias(vi.getOptimalGain(), vi.getValueFunction(), vi.getStopRun());
-			double span=this.calcSpan(bias);
-			double gain=this.calcGain(vi.getOptimalGain());
-			
-			if(span>spanbound){//skip the estimation since it violate the upper bound
+
+			Map<StateHashTuple, Double> bias = this.calcBias(vi.getOptimalGain(), vi.getValueFunction(),
+					vi.getStopRun());
+			double span = this.calcSpan(bias);
+			double gain = this.calcGain(vi.getOptimalGain());
+
+			if (span > spanbound) {// skip the estimation since it violate the
+									// upper bound
 				break;
-				
-			}else{
-				
-				if(optimalGain<=gain){
-					
-					optimalGain=gain;
-					bestTP=tempTDs;//Choosing the latest TDs as the return TDs
-				}		
-				
+
+			} else {
+
+				if (optimalGain <= gain) {
+
+					optimalGain = gain;
+					bestTP = tempTDs;// Choosing the latest TDs as the return
+										// TDs
+				}
+
 			}
-			
 
 		}
 		return bestTP;
 	}
 
-	/**
+	/*
+	 * 
 	 * @return return the optimal gain by the vi
-	 * **/
+	 */
+
 	public double calcGain(Map<StateHashTuple, Double> optimalGain) {
-		double gain = 0;
+		double gain = 0.;
 		for (StateHashTuple s : this.states) {
-			if(optimalGain.get(s)<gain){
-				gain=optimalGain.get(s);
+			if (optimalGain.get(s) < gain) {
+				gain = optimalGain.get(s);
 			}
 		}
 		return gain;
+
 	}
 
 	/*
 	 * @return calculate the bias vector and return it
 	 */
-	public Map<StateHashTuple, Double> calcBias(
-			Map<StateHashTuple, Double> optimalGain,
+	public Map<StateHashTuple, Double> calcBias(Map<StateHashTuple, Double> optimalGain,
 			Map<StateHashTuple, Double> valueFunction, int stopRun) {
 
 		Map<StateHashTuple, Double> bias = new HashMap<StateHashTuple, Double>();
@@ -329,8 +317,9 @@ public class StateTransition {
 	}
 
 	/**
-	 * @param input the bias vector
-	 *            
+	 * @param input
+	 *            the bias vector
+	 * 
 	 * @return calculate the
 	 */
 	public double calcSpan(Map<StateHashTuple, Double> bias) {

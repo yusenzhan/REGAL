@@ -1,4 +1,6 @@
 package REGAL;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +12,7 @@ import burlap.behavior.singleagent.learning.lspi.SARSData;
 import burlap.behavior.singleagent.planning.OOMDPPlanner;
 import burlap.behavior.singleagent.planning.QComputablePlanner;
 import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
+import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
 import burlap.oomdp.core.AbstractGroundedAction;
 import burlap.oomdp.core.Domain;
@@ -17,7 +20,7 @@ import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.singleagent.RewardFunction;
 
-public class REGAL extends OOMDPPlanner implements QComputablePlanner {
+public class REGAL{
 
 	protected SARSData data;
 	protected Domain domain;
@@ -28,27 +31,36 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner {
 	protected MyVI vi;
 	protected TerminalFunction tf;
 	protected RewardFunction rf;
+	protected StateHashFactory hashingFactory;
 	protected StateTransition statetransition;
-	protected static double delta=0.8;
-	protected static int maxInteration=1000;
-	protected static double gamma=1.0;
-	protected static double maxDelta=0.01;
-	protected static double biasSpanBound=1000;
-	
-	
+	protected static double delta = 0.8;
+	protected static int maxInteration = 1000;
+	protected static double gamma = 1.0;
+	protected static double maxDelta = 0.01;
+	protected double biasSpanBound;
+
 	/**
 	 * Initial the REGAL object
-	 * @param domain input the domain
-	 * @param input the initial state
+	 * 
+	 * @param domain
+	 *            input the domain
+	 * @param input
+	 *            the initial state
 	 * 
 	 * **/
-	public REGAL(Domain domain, State initialstate, TerminalFunction tf,RewardFunction rf) {
+	public REGAL(Domain domain, State initialstate, TerminalFunction tf, RewardFunction rf,
+			StateHashFactory hashingFactory, double h) {
 		super();
 		this.domain = domain;
+		this.tf=tf;
+		this.rf=rf;
+		this.hashingFactory=hashingFactory;
 		this.initialState = initialstate;
 		vi = new MyVI(domain, rf, tf, gamma, hashingFactory, maxDelta, maxInteration);
-		states = vi.getStateListFrom(this.initialState);
-		this.mapToStateIndex = vi.getmapToStateIndex();
+		this.states = vi.getStateListFrom(this.initialState);
+		this.mapToStateIndex =vi.getmapToStateIndex();
+		this.mapToIntIndex=new HashMap<StateHashTuple,Integer>();
+		this.biasSpanBound = h;
 
 		// put the state to integer index
 		int i = 0;
@@ -57,60 +69,41 @@ public class REGAL extends OOMDPPlanner implements QComputablePlanner {
 			i++;
 		}
 
-		statetransition = new StateTransition(this.states,
-				this.mapToStateIndex, this.mapToIntIndex, vi.getActions(),
-				vi.getHashingFactory(),vi);
+		statetransition = new StateTransition(this.states, this.mapToStateIndex, this.mapToIntIndex, vi.getActions(),
+				hashingFactory, vi);
+		statetransition.getInitialTransitionDynamics();
 
 	}
-	
 
-	public Policy experiment(SARSData data){ 
+	public Policy experiment(SARSData data) {
 
 		this.data = data;
+		//System.out.println("Data size="+data.dataset.size());
 
 		// pass the data set and transition set to the update class
 		this.statetransition.setData(this.data);
 		// update transition set
+		System.out.println("update TD!");
 		this.statetransition.updateTransitionSet();
+		
 
 		// constructed the constrained transition set
-		statetransition.updateConstrainedTransitionSet(this.delta);
+		System.out.println("update CTD!");
+		statetransition.updateConstrainedTransitionSet(REGAL.delta);
+		
 
-		// Select the best transition probability based on the constraints transition set
+		// Select the best transition probability based on the constraints
+		// transition set
 		vi.resetPlannerResults();
 		vi.settransitionDynamics(statetransition.selectTP(this.biasSpanBound));
-		
-		//run the value iteration from the initial state
+
+		// run the value iteration from the initial state
 		vi.planFromState(initialState);
-		
-		//create a Q-greedy policy from the planner
-		Policy p = new GreedyQPolicy((QComputablePlanner)vi);
-		
+
+		// create a Q-greedy policy from the planner
+		Policy p = new GreedyQPolicy((QComputablePlanner) vi);
+
 		return p;
-	}
-
-	@Override
-	public void planFromState(State initialState) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void resetPlannerResults() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public List<QValue> getQs(State s) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public QValue getQ(State s, AbstractGroundedAction a) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

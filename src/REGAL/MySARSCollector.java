@@ -55,6 +55,7 @@ public class MySARSCollector extends SARSCollector {
 		
 		// With probability beta, the action is from the teacher. Otherwise, from the student own policy.
 		if(p<=beta){
+			//System.out.println("Teacher");
 			action=(GroundedAction)teacher.getAction(s);
 		}else{
 			action=(GroundedAction)student.getAction(s);
@@ -115,6 +116,28 @@ public class MySARSCollector extends SARSCollector {
 			int maxSteps = Math.min(nSamples, maxEpisodeSteps);
 			int oldSize = intoDataset.size();
 			this.collectDataFrom(sg.generateState(), rf, maxSteps, tf,
+					intoDataset,teacher,student,beta);
+			int delta = intoDataset.size() - oldSize;
+			nSamples -= delta;
+		}
+
+		return intoDataset;
+
+	}
+	
+	
+	public SARSData collectNInstances(State sg, RewardFunction rf,
+			int nSamples, int maxEpisodeSteps, TerminalFunction tf,
+			SARSData intoDataset,Policy teacher,Policy student,Double beta) {
+
+		if (intoDataset == null) {
+			intoDataset = new SARSData(nSamples);
+		}
+
+		while (nSamples > 0) {
+			int maxSteps = Math.min(nSamples, maxEpisodeSteps);
+			int oldSize = intoDataset.size();
+			this.collectDataFrom(sg, rf, maxSteps, tf,
 					intoDataset,teacher,student,beta);
 			int delta = intoDataset.size() - oldSize;
 			nSamples -= delta;
