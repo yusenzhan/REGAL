@@ -24,7 +24,7 @@ import burlap.oomdp.singleagent.GroundedAction;
 public class StateTransition {
 
 	protected SARSData data;
-	protected Set<StateHashTuple> states;
+	protected List <StateHashTuple> states;
 	protected Map<StateHashTuple, StateHashTuple> mapToStateIndex;
 	protected List<Action> actions;
 	protected StateHashFactory hashingFactory;
@@ -44,7 +44,7 @@ public class StateTransition {
 	 *            input transition set in which the transition dynamics will be
 	 *            updated according to the data
 	 ***/
-	public StateTransition(Set<StateHashTuple> states, Map<StateHashTuple, StateHashTuple> mapToStateIndex,
+	public StateTransition(List <StateHashTuple> states, Map<StateHashTuple, StateHashTuple> mapToStateIndex,
 			Map<StateHashTuple, Integer> mapToIntIndex, List<Action> actions, StateHashFactory hashingFactory, MyVI vi) {
 		this.data = null;
 		this.states = states;

@@ -25,7 +25,7 @@ public class REGAL{
 	protected SARSData data;
 	protected Domain domain;
 	protected State initialState;
-	protected Set<StateHashTuple> states;
+	protected List <StateHashTuple>states;
 	protected Map<StateHashTuple, StateHashTuple> mapToStateIndex;
 	protected Map<StateHashTuple, Integer> mapToIntIndex;
 	protected MyVI vi;
@@ -57,7 +57,9 @@ public class REGAL{
 		this.hashingFactory=hashingFactory;
 		this.initialState = initialstate;
 		vi = new MyVI(domain, rf, tf, gamma, hashingFactory, maxDelta, maxInteration);
+		//System.out.println("Before List");
 		this.states = vi.getStateListFrom(this.initialState);
+		//System.out.println("After List");
 		this.mapToStateIndex =vi.getmapToStateIndex();
 		this.mapToIntIndex=new HashMap<StateHashTuple,Integer>();
 		this.biasSpanBound = h;

@@ -3,6 +3,7 @@ package REGAL;
 import java.awt.Color;
 import java.util.List;
 
+import domain.GWRandomStateGenerator;
 import domain.NullTerminalFunction;
 import burlap.behavior.singleagent.Policy;
 import burlap.behavior.singleagent.auxiliary.StateReachability;
@@ -86,6 +87,7 @@ public class DAGGERLearning {
 		this.maxSteps = maxSteps;
 		this.p = p;
 		this.currentTimeStep = 0;// current time is always 0
+		this.sg=new GWRandomStateGenerator(regal.states,this.hashingFactory.hashState(this.initialState));
 	}
 
 	/**
@@ -101,7 +103,9 @@ public class DAGGERLearning {
 			double beta = getBetai(i, p);
 			// data = collector.collectDataFrom(this.initialState, this.rf,
 			// this.maxSteps, this.tf, null, this.teacher, this.student, beta);
-			data = collector.collectNInstances(this.initialState, this.rf, maxSteps, maxSteps, this.tf, null, teacher,
+			//data = collector.collectNInstances(this.initialState, this.rf, maxSteps, maxSteps, this.tf, null, teacher,
+					//student, beta);
+			data = collector.collectNInstances(sg, this.rf, maxSteps, 50, this.tf, null, teacher,
 					student, beta);
 			System.out.println(data.dataset.size());
 			student = regal.experiment(data);
@@ -172,6 +176,7 @@ public class DAGGERLearning {
 		// create the domain
 		GridWorldDomain gwdg = new GridWorldDomain(11, 11);
 		gwdg.setMapToFourRooms();
+		//gwdg.setDeterministicTransitionDynamics();
 		Domain domain = gwdg.generateDomain();
 
 		// create the state parser
@@ -189,6 +194,7 @@ public class DAGGERLearning {
 		State initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
 		GridWorldDomain.setAgent(initialState, 0, 0);
 		GridWorldDomain.setLocation(initialState, 0, 10, 10);
+		
 
 		// set up the state hashing system
 		DiscreteStateHashFactory hashingFactory = new DiscreteStateHashFactory();
@@ -196,7 +202,12 @@ public class DAGGERLearning {
 				domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
 
 		// add visual observer
+<<<<<<< HEAD
 		VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain,gwdg.getMap()));
+=======
+		VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain,
+				gwdg.getMap()));
+>>>>>>> 90c7a25e2275f7ead5412b0577184a19e987cf5b
 		((SADomain) domain).setActionObserverForAllAction(observer);
 		observer.initGUI();
 
@@ -209,7 +220,7 @@ public class DAGGERLearning {
 
 		Policy student = null;
 
-		DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student, 30,
+		DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student, 10,
 				1000, 1000, 0.5);
 		// System.out.println(Math.pow(0.5, 0));
 		dagger.train();
