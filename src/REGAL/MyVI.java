@@ -1,4 +1,5 @@
 package REGAL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -84,9 +85,8 @@ public class MyVI extends ValueFunctionPlanner{
 	 * @param maxIterations when the number of VI iterations exceeds this value, VI will terminate.
 	 */
 	public MyVI(Domain domain, RewardFunction rf, TerminalFunction tf, double gamma, StateHashFactory hashingFactory, double maxDelta, int maxIterations){
-		
+		//System.out.println("MYVI");
 		this.VFPInit(domain, rf, tf, gamma, hashingFactory);
-		
 		this.maxDelta = maxDelta;
 		this.maxIterations = maxIterations;
 		this.optimalGain=new HashMap <StateHashTuple, Double>();
@@ -255,17 +255,17 @@ public class MyVI extends ValueFunctionPlanner{
 	 *  @param si is the initial state
 	 *  @return the state set
 	 * */
-	public Set<StateHashTuple> getStateListFrom(State si){
+	public List <StateHashTuple> getStateListFrom(State si){
 		
 		
 		
 		StateHashTuple sih = this.stateHash(si);
 		
-		DPrint.cl(this.debugCode, "Starting reachability analysis");
+		DPrint.cl(this.debugCode, "Getting the states list");
 	
 		//add to the open list
 		LinkedList <StateHashTuple> openList = new LinkedList<StateHashTuple>();
-		Set <StateHashTuple> openedSet = new HashSet<StateHashTuple>();
+		List <StateHashTuple> openedSet = new ArrayList<StateHashTuple>();
 		openList.offer(sih);
 		openedSet.add(sih);
 		
@@ -302,7 +302,7 @@ public class MyVI extends ValueFunctionPlanner{
 			
 		}
 		
-		DPrint.cl(this.debugCode, "Finished reachability analysis; # states: " + mapToStateIndex.size());
+		DPrint.cl(this.debugCode, "The states List is constructed; # states: " + mapToStateIndex.size());
 		
 		this.foundReachableStates = true;
 		this.hasRunVI = false;
