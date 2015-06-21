@@ -196,10 +196,9 @@ public class DAGGERLearning {
 				domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
 
 		// add visual observer
-		//VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain,
-				//gwdg.getMap()));
-		//((SADomain) domain).setActionObserverForAllAction(observer);
-		//observer.initGUI();
+		VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain,gwdg.getMap()));
+		((SADomain) domain).setActionObserverForAllAction(observer);
+		observer.initGUI();
 
 		// construct the teacher
 		OOMDPPlanner planner = new MyVI(domain, rf, tf, 1, hashingFactory, 0.001, 100);
@@ -218,10 +217,10 @@ public class DAGGERLearning {
 		Policy p = dagger.getStudent();
 
 		// record the plan results to a file
-		//p.evaluateBehavior(initialState, rf, tf);
+		p.evaluateBehavior(initialState, rf, tf);
 
 		// visualize the value function and policy
-		//dagger.valueFunctionVisualize((QComputablePlanner) planner, p);
+		dagger.valueFunctionVisualize((QComputablePlanner) planner, p);
 
 	}
 
