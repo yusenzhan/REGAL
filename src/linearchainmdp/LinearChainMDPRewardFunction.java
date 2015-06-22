@@ -22,7 +22,7 @@ public class LinearChainMDPRewardFunction implements RewardFunction {
 		
 		//are they at goal location?
 		if(ax == this.goalX){
-			return 1;
+			return 0;
 		}
 		
 		return -1;

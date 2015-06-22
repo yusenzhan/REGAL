@@ -52,7 +52,7 @@ public class LinearChainMDPDomain implements DomainGenerator {
 		SADomain domain = new SADomain();
 
 		Attribute xatt = new Attribute(domain, ATTX, AttributeType.INT);
-		xatt.setLims(0, 10);
+		xatt.setLims(0, this.chainLength);
 
 		ObjectClass agentClass = new ObjectClass(domain, CLASSAGENT);
 		agentClass.addAttribute(xatt);
@@ -66,6 +66,20 @@ public class LinearChainMDPDomain implements DomainGenerator {
 		new AtLocation(domain);
 
 		return domain;
+	}
+	
+	public static State getState(Domain domain){
+		State s = new State();
+		ObjectInstance agent = new ObjectInstance(domain.getObjectClass(CLASSAGENT), "agent0");
+		agent.setValue(ATTX, 0);
+		
+		ObjectInstance location = new ObjectInstance(domain.getObjectClass(CLASSLOCATION), "location0");
+		location.setValue(ATTX, 0);
+		
+		s.addObject(agent);
+		s.addObject(location);
+		
+		return s;
 	}
 
 	protected class Movement extends Action {
