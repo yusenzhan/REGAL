@@ -2,6 +2,7 @@ package REGAL;
 
 import java.awt.Color;
 import java.util.List;
+import java.util.Random;
 
 import domain.GWRandomStateGenerator;
 import domain.NullTerminalFunction;
@@ -22,6 +23,7 @@ import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.singleagent.planning.deterministic.TFGoalCondition;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
 import burlap.behavior.statehashing.StateHashFactory;
+import burlap.debugtools.RandomFactory;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldStateParser;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
@@ -174,9 +176,27 @@ public class DAGGERLearning {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		// create the domain
-		GridWorldDomain gwdg = new GridWorldDomain(11, 11);
-		gwdg.setMapToFourRooms();
+		GridWorldDomain gwdg = new GridWorldDomain(15, 15);
+		//gwdg.setMapToFourRooms();
 		// gwdg.setDeterministicTransitionDynamics();
+		int [][] map = new int[][]{
+				{0,0,0,0,0,1,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,1,0,0,1,1,1,0,0,0,0},
+				{0,0,0,0,0,1,0,0,0,0,0,1,0,0,0},
+				{0,0,0,0,0,1,0,0,0,0,0,0,1,0,0},
+				{0,0,0,0,0,1,0,0,0,0,0,0,1,0,0},
+				{1,0,1,1,1,1,1,1,0,1,1,1,1,1,1},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+		};
+		gwdg.setMap(map);
 		Domain domain = gwdg.generateDomain();
 
 		// create the state parser
@@ -193,7 +213,7 @@ public class DAGGERLearning {
 		// set up the initial state of the task
 		State initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
 		GridWorldDomain.setAgent(initialState, 0, 0);
-		GridWorldDomain.setLocation(initialState, 0, 10, 10);
+		GridWorldDomain.setLocation(initialState, 0, 14, 14);
 
 		// set up the state hashing system
 		DiscreteStateHashFactory hashingFactory = new DiscreteStateHashFactory();

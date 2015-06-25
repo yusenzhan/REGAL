@@ -21,12 +21,11 @@ public class LinearChainMDPDomain implements DomainGenerator {
 
 	public static final String CLASSAGENT = "agent";
 	public static final String CLASSLOCATION = "location";
-	
+
 	public static final String ACTIONFORWARD = "forward";
-	public static final String ACTIONBACKWARD= "backword";
-	
+	public static final String ACTIONBACKWARD = "backword";
+
 	public static final String PFAT = "at";
-	
 
 	/*
 	 * 
@@ -43,7 +42,7 @@ public class LinearChainMDPDomain implements DomainGenerator {
 	public LinearChainMDPDomain(int chainLength, double finalStateTransitionDy) {
 
 		this.chainLength = chainLength;
-		this.finalStateTransitionDy=finalStateTransitionDy;
+		this.finalStateTransitionDy = finalStateTransitionDy;
 	}
 
 	@Override
@@ -59,26 +58,26 @@ public class LinearChainMDPDomain implements DomainGenerator {
 
 		ObjectClass locationClass = new ObjectClass(domain, CLASSLOCATION);
 		locationClass.addAttribute(xatt);
-		
-		new Movement(ACTIONFORWARD, domain, 0,this.chainLength,this.finalStateTransitionDy);
-		new Movement(ACTIONBACKWARD, domain, 1,this.chainLength,this.finalStateTransitionDy);
-		
+
+		new Movement(ACTIONFORWARD, domain, 0, this.chainLength, this.finalStateTransitionDy);
+		new Movement(ACTIONBACKWARD, domain, 1, this.chainLength, this.finalStateTransitionDy);
+
 		new AtLocation(domain);
 
 		return domain;
 	}
-	
-	public static State getState(Domain domain){
+
+	public static State getState(Domain domain) {
 		State s = new State();
 		ObjectInstance agent = new ObjectInstance(domain.getObjectClass(CLASSAGENT), "agent0");
 		agent.setValue(ATTX, 0);
-		
+
 		ObjectInstance location = new ObjectInstance(domain.getObjectClass(CLASSLOCATION), "location0");
 		location.setValue(ATTX, 0);
-		
+
 		s.addObject(agent);
 		s.addObject(location);
-		
+
 		return s;
 	}
 
@@ -102,7 +101,11 @@ public class LinearChainMDPDomain implements DomainGenerator {
 		public Movement(String actionName, Domain domain, int direction, int chainLength, double finalStateTransitionDy) {
 			super(actionName, domain, "");
 			for (int i = 0; i < 2; i++) {
-				directionProbs[i] = 1.0;
+				if (i == direction) {
+					directionProbs[i] = 1.0;
+				} else {
+					directionProbs[i] = 0.0;
+				}
 			}
 			this.chainLength = chainLength;
 
@@ -146,46 +149,34 @@ public class LinearChainMDPDomain implements DomainGenerator {
 			int curX = agent.getDiscValForAttribute(ATTX);
 
 			List<TransitionProbability> tps = new ArrayList<TransitionProbability>(2);
-			TransitionProbability noChangeTransition = null;
+			// TransitionProbability noChangeTransition = null;
 
-			for (int i = 0; i < this.directionProbs.length; i++) {
-				int newPos = this.moveResult(curX, i);
-				// the agent is in the goal state
-				if (newPos == this.chainLength - 1) {
-					// new possible outcome
-					State ns = s.copy();
-					ObjectInstance nagent = ns.getFirstObjectOfClass(CLASSAGENT);
-					nagent.setValue(ATTX, newPos);
+			int newPos = this.moveResult(curX, 0);// forward move
+			if (newPos != curX) {
+				// new possible outcome
+				State ns = s.copy();
+				ObjectInstance nagent = ns.getFirstObjectOfClass(CLASSAGENT);
+				nagent.setValue(ATTX, newPos);
 
-					// create transition probability object and add to our list
-					// of outcomes
-					if (i == 0) {
-						tps.add(new TransitionProbability(ns, this.finalStateTransitionDy));
-					} else {
-						tps.add(new TransitionProbability(ns, 1-this.finalStateTransitionDy));
-					}
-				} else if (newPos != curX) {
-					// new possible outcome
-					State ns = s.copy();
-					ObjectInstance nagent = ns.getFirstObjectOfClass(CLASSAGENT);
-					nagent.setValue(ATTX, newPos);
+				// create transition probability object and add to our list
+				// of outcomes
+				if (curX == this.chainLength - 1) {// action forward may fail at the final state
 
-					// create transition probability object and add to our list
-					// of outcomes
-					tps.add(new TransitionProbability(ns, this.directionProbs[i]));
+					tps.add(new TransitionProbability(ns, 1 - this.finalStateTransitionDy));
+
 				} else {
-					// this direction didn't lead anywhere new
-					// if there are existing possible directions
-					// that wouldn't lead anywhere, aggregate with them
-					if (noChangeTransition != null) {
-						noChangeTransition.p += this.directionProbs[i];
-					} else {
-						// otherwise create this new state and transition
-						noChangeTransition = new TransitionProbability(s.copy(), this.directionProbs[i]);
-						tps.add(noChangeTransition);
-					}
+					
+					tps.add(new TransitionProbability(ns, this.directionProbs[0]));
 				}
+
+			} else { //the agent will stay at the final state with probability this.finalStateTransitionDy
+
+				tps.add(new TransitionProbability(s.copy(), this.finalStateTransitionDy));
 			}
+			
+			newPos = this.moveResult(curX, 1);//backward move
+			
+			tps.add(new TransitionProbability(s.copy(),this.directionProbs[1]));
 
 			return tps;
 		}
@@ -198,14 +189,14 @@ public class LinearChainMDPDomain implements DomainGenerator {
 			if (curX == this.chainLength - 1) {
 				if (direction == 1) {
 					xdelta = -curX;
-				}else if(Math.random()>this.finalStateTransitionDy){
-					xdelta = -curX;	
-				}else{
+				} else if (Math.random() > this.finalStateTransitionDy) {
+					xdelta = -curX;
+				} else {
 					xdelta = 0;
 				}
 
 			} else {
-				
+
 				if (direction == 0) {
 					xdelta = 1;
 				} else {// The agent will move back to the start point
@@ -224,26 +215,25 @@ public class LinearChainMDPDomain implements DomainGenerator {
 
 		}
 	}
-	
-	protected class AtLocation extends PropositionalFunction{
 
-		public AtLocation(Domain domain){
-			super(PFAT, domain, new String []{CLASSAGENT,CLASSLOCATION});
+	protected class AtLocation extends PropositionalFunction {
+
+		public AtLocation(Domain domain) {
+			super(PFAT, domain, new String[] { CLASSAGENT, CLASSLOCATION });
 		}
-		
+
 		@Override
 		public boolean isTrue(State s, String[] params) {
 			ObjectInstance agent = s.getObject(params[0]);
 			ObjectInstance location = s.getObject(params[1]);
-			
+
 			int ax = agent.getDiscValForAttribute(ATTX);
-			
+
 			int lx = location.getDiscValForAttribute(ATTX);
-			
+
 			return ax == lx;
 		}
-				
-		
+
 	}
 
 }
