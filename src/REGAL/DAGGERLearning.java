@@ -30,6 +30,7 @@ import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
 import burlap.oomdp.auxiliary.StateGenerator;
 //import burlap.oomdp.auxiliary.StateGenerator;
 import burlap.oomdp.auxiliary.StateParser;
+import burlap.oomdp.auxiliary.common.RandomStartStateGenerator;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.core.State;
@@ -89,7 +90,7 @@ public class DAGGERLearning {
 		this.maxSteps = maxSteps;
 		this.p = p;
 		this.currentTimeStep = 0;// current time is always 0
-		this.sg = new GWRandomStateGenerator(regal.states, this.hashingFactory.hashState(this.initialState));
+		this.sg = new RandomStartStateGenerator((SADomain)this.domain,this.initialState);
 	}
 
 	/**
@@ -222,11 +223,11 @@ public class DAGGERLearning {
 
 		// add visual observer
 
-		VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain,
-				gwdg.getMap()));
+		//VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain,
+				//gwdg.getMap()));
 
-		((SADomain) domain).setActionObserverForAllAction(observer);
-		observer.initGUI();
+		//((SADomain) domain).setActionObserverForAllAction(observer);
+		//observer.initGUI();
 
 		// construct the teacher
 		OOMDPPlanner planner = new MyVI(domain, rf, tf, 1, hashingFactory, 0.001, 100);
@@ -238,7 +239,7 @@ public class DAGGERLearning {
 		Policy student = null;
 
 		DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student, 10,
-				1000, 1000, 0.5);
+				10000, 1000, 0.5);
 		// System.out.println(Math.pow(0.5, 0));
 		dagger.train();
 
@@ -248,7 +249,7 @@ public class DAGGERLearning {
 		p.evaluateBehavior(initialState, rf, tf);
 
 		// visualize the value function and policy
-		dagger.valueFunctionVisualize((QComputablePlanner) planner, p);
+		//dagger.valueFunctionVisualize((QComputablePlanner) planner, p);
 
 	}
 
