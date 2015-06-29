@@ -2,6 +2,7 @@ package REGAL;
 
 import java.awt.Color;
 import java.util.List;
+import java.util.Random;
 
 import domain.GWRandomStateGenerator;
 import domain.NullTerminalFunction;
@@ -22,12 +23,14 @@ import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.singleagent.planning.deterministic.TFGoalCondition;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
 import burlap.behavior.statehashing.StateHashFactory;
+import burlap.debugtools.RandomFactory;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldStateParser;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
 import burlap.oomdp.auxiliary.StateGenerator;
 //import burlap.oomdp.auxiliary.StateGenerator;
 import burlap.oomdp.auxiliary.StateParser;
+import burlap.oomdp.auxiliary.common.RandomStartStateGenerator;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.core.State;
@@ -87,7 +90,7 @@ public class DAGGERLearning {
 		this.maxSteps = maxSteps;
 		this.p = p;
 		this.currentTimeStep = 0;// current time is always 0
-		this.sg = new GWRandomStateGenerator(regal.states, this.hashingFactory.hashState(this.initialState));
+		this.sg = new RandomStartStateGenerator((SADomain)this.domain,this.initialState);
 	}
 
 	/**
@@ -174,9 +177,27 @@ public class DAGGERLearning {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		// create the domain
-		GridWorldDomain gwdg = new GridWorldDomain(11, 11);
-		gwdg.setMapToFourRooms();
+		GridWorldDomain gwdg = new GridWorldDomain(15, 15);
+		//gwdg.setMapToFourRooms();
 		// gwdg.setDeterministicTransitionDynamics();
+		int [][] map = new int[][]{
+				{0,0,0,0,0,1,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,1,0,0,1,1,1,0,0,0,0},
+				{0,0,0,0,0,1,0,0,0,0,0,1,0,0,0},
+				{0,0,0,0,0,1,0,0,0,0,0,0,1,0,0},
+				{0,0,0,0,0,1,0,0,0,0,0,0,1,0,0},
+				{1,0,1,1,1,1,1,1,0,1,1,1,1,1,1},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
+		};
+		gwdg.setMap(map);
 		Domain domain = gwdg.generateDomain();
 
 		// create the state parser
@@ -193,7 +214,7 @@ public class DAGGERLearning {
 		// set up the initial state of the task
 		State initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
 		GridWorldDomain.setAgent(initialState, 0, 0);
-		GridWorldDomain.setLocation(initialState, 0, 10, 10);
+		GridWorldDomain.setLocation(initialState, 0, 14, 14);
 
 		// set up the state hashing system
 		DiscreteStateHashFactory hashingFactory = new DiscreteStateHashFactory();
@@ -202,11 +223,11 @@ public class DAGGERLearning {
 
 		// add visual observer
 
-		VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain,
-				gwdg.getMap()));
+		//VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain,
+				//gwdg.getMap()));
 
-		((SADomain) domain).setActionObserverForAllAction(observer);
-		observer.initGUI();
+		//((SADomain) domain).setActionObserverForAllAction(observer);
+		//observer.initGUI();
 
 		// construct the teacher
 		OOMDPPlanner planner = new MyVI(domain, rf, tf, 1, hashingFactory, 0.001, 100);
@@ -216,9 +237,10 @@ public class DAGGERLearning {
 		Policy teacher = new GreedyQPolicy((QComputablePlanner) planner);
 
 		Policy student = null;
+		Policy.RandomPolicy t=new Policy.RandomPolicy(domain);
 
 		DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student, 10,
-				1000, 1000, 0.5);
+				10000, 1000, 0.5);
 		// System.out.println(Math.pow(0.5, 0));
 		dagger.train();
 
@@ -228,7 +250,7 @@ public class DAGGERLearning {
 		p.evaluateBehavior(initialState, rf, tf);
 
 		// visualize the value function and policy
-		dagger.valueFunctionVisualize((QComputablePlanner) planner, p);
+		//dagger.valueFunctionVisualize((QComputablePlanner) planner, p);
 
 	}
 

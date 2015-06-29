@@ -24,7 +24,7 @@ public class LinearChainMDPTerminalFunction implements TerminalFunction {
 
 		
 		//are they at goal location?
-		if(ax == this.goalX && tf==true){
+		if(ax == this.goalX-1 && tf==true){
 			return true;
 		}
 		

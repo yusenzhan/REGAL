@@ -21,7 +21,7 @@ public class LinearChainMDPRewardFunction implements RewardFunction {
 		int ax = agent.getDiscValForAttribute(LinearChainMDPDomain.ATTX);
 		
 		//are they at goal location?
-		if(ax == this.goalX){
+		if(ax == this.goalX-1){
 			return 0;
 		}
 		
