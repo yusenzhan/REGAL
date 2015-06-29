@@ -237,6 +237,7 @@ public class DAGGERLearning {
 		Policy teacher = new GreedyQPolicy((QComputablePlanner) planner);
 
 		Policy student = null;
+		Policy.RandomPolicy t=new Policy.RandomPolicy(domain);
 
 		DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student, 10,
 				10000, 1000, 0.5);
