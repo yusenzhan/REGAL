@@ -13,6 +13,7 @@ import burlap.behavior.singleagent.planning.ActionTransitions;
 import burlap.behavior.singleagent.planning.HashedTransitionProbability;
 import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
+import burlap.oomdp.core.State;
 import burlap.oomdp.core.TransitionProbability;
 import burlap.oomdp.singleagent.Action;
 import burlap.oomdp.singleagent.GroundedAction;
@@ -25,6 +26,7 @@ public class StateTransition {
 
 	protected SARSData data;
 	protected List <StateHashTuple> states;
+	protected State initialState;
 	protected Map<StateHashTuple, StateHashTuple> mapToStateIndex;
 	protected List<Action> actions;
 	protected StateHashFactory hashingFactory;
@@ -45,7 +47,7 @@ public class StateTransition {
 	 *            updated according to the data
 	 ***/
 	public StateTransition(List <StateHashTuple> states, Map<StateHashTuple, StateHashTuple> mapToStateIndex,
-			Map<StateHashTuple, Integer> mapToIntIndex, List<Action> actions, StateHashFactory hashingFactory, MyVI vi) {
+			Map<StateHashTuple, Integer> mapToIntIndex, List<Action> actions, StateHashFactory hashingFactory, MyVI vi, State initialState) {
 		this.data = null;
 		this.states = states;
 		this.actions = actions;
@@ -57,7 +59,8 @@ public class StateTransition {
 		this.constrainedtransitionList.clear();
 		this.constrainedtransitionCountList.clear();
 		this.InitialTD = null;
-		this.vi = vi;
+		this.vi =vi;
+		this.initialState=initialState;
 
 	}
 
@@ -103,13 +106,14 @@ public class StateTransition {
 			this.transitionCountList.add(InitialTD);
 		}
 
-		// update the transition set
-		// set the base as the last element of the list
-		Map<StateHashTuple, List<ActionTransitions>> tempCountTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
-				this.transitionCountList.get(this.transitionCountList.size() - 1));
-		Map<StateHashTuple, List<ActionTransitions>> tempTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
-				this.transitionList.get(this.transitionList.size() - 1));
+	
 		for (SARS sars : data.dataset) {
+			// update the transition set
+			// set the base as the last element of the list
+			Map<StateHashTuple, List<ActionTransitions>> tempCountTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
+					this.transitionCountList.get(this.transitionCountList.size() - 1));
+			Map<StateHashTuple, List<ActionTransitions>> tempTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
+					this.transitionList.get(this.transitionList.size() - 1));
 			StateHashTuple sh = this.hashingFactory.hashState(sars.s);
 			StateHashTuple shp = this.hashingFactory.hashState(sars.sp);
 			List<ActionTransitions> tempCountATs = tempCountTD.get(sh);
@@ -155,8 +159,12 @@ public class StateTransition {
 				}
 
 			}
+			this.transitionCountList.add(tempCountTD);
+			this.transitionList.add(tempTD);
 
 		}
+		
+		System.out.println("MDP size="+this.transitionList.size());
 
 	}
 
@@ -242,6 +250,8 @@ public class StateTransition {
 				this.constrainedtransitionCountList.add(tempCountTDs);
 			}
 		}
+		
+		System.out.println("Constrainted MDP size="+this.constrainedtransitionList.size());
 
 	}
 
@@ -256,10 +266,10 @@ public class StateTransition {
 		Map<StateHashTuple, List<ActionTransitions>> bestTP = null;
 		for (int i = 0; i < this.constrainedtransitionList.size(); i++) {
 			Map<StateHashTuple, List<ActionTransitions>> tempTDs = new HashMap<StateHashTuple, List<ActionTransitions>>(
-					this.transitionList.get(i));
+					this.constrainedtransitionList.get(i));
 			vi.resetPlannerResults();
 			vi.settransitionDynamics(tempTDs);
-			vi.runVI();
+			vi.planFromState(initialState);
 
 			Map<StateHashTuple, Double> bias = this.calcBias(vi.getOptimalGain(), vi.getValueFunction(),
 					vi.getStopRun());
@@ -268,7 +278,7 @@ public class StateTransition {
 
 			if (span > spanbound) {// skip the estimation since it violate the
 									// upper bound
-				break;
+				continue;
 
 			} else {
 

@@ -178,9 +178,9 @@ public class DAGGERLearning {
 		// TODO Auto-generated method stub
 		// create the domain
 		GridWorldDomain gwdg = new GridWorldDomain(15, 15);
-		//gwdg.setMapToFourRooms();
-		// gwdg.setDeterministicTransitionDynamics();
-		int [][] map = new int[][]{
+		gwdg.setMapToFourRooms();
+		gwdg.setDeterministicTransitionDynamics();
+		/*int [][] map = new int[][]{
 				{0,0,0,0,0,1,0,0,0,0,0,0,0,0,0},
 				{0,0,0,0,0,1,0,0,1,1,1,0,0,0,0},
 				{0,0,0,0,0,1,0,0,0,0,0,1,0,0,0},
@@ -197,7 +197,7 @@ public class DAGGERLearning {
 				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
 				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
 		};
-		gwdg.setMap(map);
+		gwdg.setMap(map);*/
 		Domain domain = gwdg.generateDomain();
 
 		// create the state parser
@@ -214,7 +214,7 @@ public class DAGGERLearning {
 		// set up the initial state of the task
 		State initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
 		GridWorldDomain.setAgent(initialState, 0, 0);
-		GridWorldDomain.setLocation(initialState, 0, 14, 14);
+		GridWorldDomain.setLocation(initialState, 0, 10, 10);
 
 		// set up the state hashing system
 		DiscreteStateHashFactory hashingFactory = new DiscreteStateHashFactory();
@@ -240,7 +240,7 @@ public class DAGGERLearning {
 		Policy.RandomPolicy t=new Policy.RandomPolicy(domain);
 
 		DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student, 10,
-				10000, 1000, 0.5);
+				1000, 1000, 0.5);
 		// System.out.println(Math.pow(0.5, 0));
 		dagger.train();
 

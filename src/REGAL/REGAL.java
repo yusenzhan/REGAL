@@ -72,7 +72,7 @@ public class REGAL{
 		}
 
 		statetransition = new StateTransition(this.states, this.mapToStateIndex, this.mapToIntIndex, vi.getActions(),
-				hashingFactory, vi);
+				hashingFactory, vi,this.initialState);
 		statetransition.getInitialTransitionDynamics();
 
 	}
@@ -96,11 +96,17 @@ public class REGAL{
 
 		// Select the best transition probability based on the constraints
 		// transition set
-		vi.resetPlannerResults();
+	
+		
 		vi.settransitionDynamics(statetransition.selectTP(this.biasSpanBound));
+		
 
 		// run the value iteration from the initial state
+		vi.resetPlannerResults();
+		vi.setDisplayRounds(true);
+		System.out.println("Planning!");
 		vi.planFromState(initialState);
+		vi.setDisplayRounds(false);
 
 		// create a Q-greedy policy from the planner
 		Policy p = new GreedyQPolicy((QComputablePlanner) vi);

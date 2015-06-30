@@ -65,6 +65,8 @@ public class MyVI extends ValueFunctionPlanner {
 
 	protected boolean hasRunVI = false;
 
+	protected boolean isDisplayRounds = false;
+
 	/**
 	 * When the VI sotps, it stores the number of iterations which is used to
 	 * approximate the bias vector
@@ -183,10 +185,6 @@ public class MyVI extends ValueFunctionPlanner {
 				minV = Math.min(Math.abs(maxQ - v), minV);
 
 			}
-			if(i==0){
-				
-				System.out.println(minV+" "+delta);
-			}
 			/*
 			 * if (delta < this.maxDelta) { System.out.println("Stop!! delta=" +
 			 * delta); break; // approximated well enough; //stop iterating }
@@ -201,7 +199,9 @@ public class MyVI extends ValueFunctionPlanner {
 		}
 
 		this.stopRun = i;
-		DPrint.cl(this.debugCode, "Passes: " + i);
+		if (this.isDisplayRounds == true) {
+			DPrint.cl(this.debugCode, "Passes: " + i);
+		}
 
 		this.hasRunVI = true;
 
@@ -396,6 +396,21 @@ public class MyVI extends ValueFunctionPlanner {
 	 */
 	public void setValueFunction(Map<StateHashTuple, Double> valueFunction) {
 		this.valueFunction = valueFunction;
+	}
+
+	/**
+	 * @return the isDisplayRounds
+	 */
+	public boolean isDisplayRounds() {
+		return isDisplayRounds;
+	}
+
+	/**
+	 * @param isDisplayRounds
+	 *            the isDisplayRounds to set
+	 */
+	public void setDisplayRounds(boolean isDisplayRounds) {
+		this.isDisplayRounds = isDisplayRounds;
 	}
 
 }
