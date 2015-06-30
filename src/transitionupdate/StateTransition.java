@@ -25,7 +25,7 @@ import burlap.oomdp.singleagent.GroundedAction;
 public class StateTransition {
 
 	protected SARSData data;
-	protected List <StateHashTuple> states;
+	protected List<StateHashTuple> states;
 	protected State initialState;
 	protected Map<StateHashTuple, StateHashTuple> mapToStateIndex;
 	protected List<Action> actions;
@@ -46,8 +46,9 @@ public class StateTransition {
 	 *            input transition set in which the transition dynamics will be
 	 *            updated according to the data
 	 ***/
-	public StateTransition(List <StateHashTuple> states, Map<StateHashTuple, StateHashTuple> mapToStateIndex,
-			Map<StateHashTuple, Integer> mapToIntIndex, List<Action> actions, StateHashFactory hashingFactory, MyVI vi, State initialState) {
+	public StateTransition(List<StateHashTuple> states, Map<StateHashTuple, StateHashTuple> mapToStateIndex,
+			Map<StateHashTuple, Integer> mapToIntIndex, List<Action> actions, StateHashFactory hashingFactory, MyVI vi,
+			State initialState) {
 		this.data = null;
 		this.states = states;
 		this.actions = actions;
@@ -59,8 +60,8 @@ public class StateTransition {
 		this.constrainedtransitionList.clear();
 		this.constrainedtransitionCountList.clear();
 		this.InitialTD = null;
-		this.vi =vi;
-		this.initialState=initialState;
+		this.vi = vi;
+		this.initialState = initialState;
 
 	}
 
@@ -98,6 +99,73 @@ public class StateTransition {
 	/**
 	 * update the transition set according to the data and transitions class
 	 * **/
+	public void updateTransitionSetOne() {
+		// if list is empty, we need to initialized it.
+		if (this.transitionCountList.isEmpty() && this.transitionCountList.isEmpty()) {
+
+			this.transitionList.add(InitialTD);
+			this.transitionCountList.add(InitialTD);
+		}
+
+		Map<StateHashTuple, List<ActionTransitions>> tempCountTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
+				this.transitionCountList.get(this.transitionCountList.size() - 1));
+		Map<StateHashTuple, List<ActionTransitions>> tempTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
+				this.transitionList.get(this.transitionList.size() - 1));
+		for (SARS sars : data.dataset) {
+			// update the transition set
+			// set the base as the last element of the list
+
+			StateHashTuple sh = this.hashingFactory.hashState(sars.s);
+			StateHashTuple shp = this.hashingFactory.hashState(sars.sp);
+			List<ActionTransitions> tempCountATs = tempCountTD.get(sh);
+			// System.out.println("ATs="+tempCountATs.size());
+			// find the transitions by action
+			for (int i = 0; i < tempCountATs.size(); i++) {
+				ActionTransitions tempCountAT = tempCountATs.get(i);
+				// System.out.println("AT"+tempCountAT.transitions.size());
+				boolean updateFlag = false;
+				if (tempCountAT.matchingTransitions(sars.a)) {
+					// System.out.println("Find the action!");
+
+					// update the counting matrix
+					double counter = 0.0;
+					// System.out.println("transition size="+tempCountAT.transitions.size());
+					for (int j = 0; j < tempCountAT.transitions.size(); j++) {
+						HashedTransitionProbability tempCountHTP = tempCountAT.transitions.get(j);
+
+						if (tempCountHTP.sh.equals(shp)) {
+							tempCountHTP.p += 1.0;
+						}
+						counter += tempCountHTP.p;
+						// 5System.out.println("counter="+counter+" j="+j);
+
+						// System.out.println("Finish counting");
+					}
+
+					// update the probability transitions
+					for (int k = 0; k < tempCountAT.transitions.size(); k++) {
+						HashedTransitionProbability tempCountHTP = tempCountAT.transitions.get(k);
+						HashedTransitionProbability tempHTP = tempTD.get(sh).get(i).transitions.get(k);
+						tempHTP.p = tempCountHTP.p / counter;
+						// System.out.println("Finish update pro");
+					}
+
+					updateFlag = true;
+
+				}
+
+				// no need to update
+				if (updateFlag == true) {
+					break;
+				}
+
+			}
+		}
+
+		System.out.println("MDP size=" + this.transitionList.size());
+
+	}
+
 	public void updateTransitionSet() {
 		// if list is empty, we need to initialized it.
 		if (this.transitionCountList.isEmpty() && this.transitionCountList.isEmpty()) {
@@ -106,7 +174,6 @@ public class StateTransition {
 			this.transitionCountList.add(InitialTD);
 		}
 
-	
 		for (SARS sars : data.dataset) {
 			// update the transition set
 			// set the base as the last element of the list
@@ -117,28 +184,28 @@ public class StateTransition {
 			StateHashTuple sh = this.hashingFactory.hashState(sars.s);
 			StateHashTuple shp = this.hashingFactory.hashState(sars.sp);
 			List<ActionTransitions> tempCountATs = tempCountTD.get(sh);
-			//System.out.println("ATs="+tempCountATs.size());
+			// System.out.println("ATs="+tempCountATs.size());
 			// find the transitions by action
 			for (int i = 0; i < tempCountATs.size(); i++) {
 				ActionTransitions tempCountAT = tempCountATs.get(i);
-				//System.out.println("AT"+tempCountAT.transitions.size());
-				boolean updateFlag=false;
+				// System.out.println("AT"+tempCountAT.transitions.size());
+				boolean updateFlag = false;
 				if (tempCountAT.matchingTransitions(sars.a)) {
-					//System.out.println("Find the action!");
+					// System.out.println("Find the action!");
 
 					// update the counting matrix
 					double counter = 0.0;
-					//System.out.println("transition size="+tempCountAT.transitions.size());
+					// System.out.println("transition size="+tempCountAT.transitions.size());
 					for (int j = 0; j < tempCountAT.transitions.size(); j++) {
 						HashedTransitionProbability tempCountHTP = tempCountAT.transitions.get(j);
-						
+
 						if (tempCountHTP.sh.equals(shp)) {
 							tempCountHTP.p += 1.0;
 						}
 						counter += tempCountHTP.p;
-						//5System.out.println("counter="+counter+" j="+j);
-						
-						//System.out.println("Finish counting");
+						// 5System.out.println("counter="+counter+" j="+j);
+
+						// System.out.println("Finish counting");
 					}
 
 					// update the probability transitions
@@ -146,15 +213,15 @@ public class StateTransition {
 						HashedTransitionProbability tempCountHTP = tempCountAT.transitions.get(k);
 						HashedTransitionProbability tempHTP = tempTD.get(sh).get(i).transitions.get(k);
 						tempHTP.p = tempCountHTP.p / counter;
-						//System.out.println("Finish update pro");
+						// System.out.println("Finish update pro");
 					}
-					
-					updateFlag=true;
+
+					updateFlag = true;
 
 				}
-				
+
 				// no need to update
-				if(updateFlag==true){
+				if (updateFlag == true) {
 					break;
 				}
 
@@ -163,8 +230,8 @@ public class StateTransition {
 			this.transitionList.add(tempTD);
 
 		}
-		
-		System.out.println("MDP size="+this.transitionList.size());
+
+		System.out.println("MDP size=" + this.transitionList.size());
 
 	}
 
@@ -250,8 +317,8 @@ public class StateTransition {
 				this.constrainedtransitionCountList.add(tempCountTDs);
 			}
 		}
-		
-		System.out.println("Constrainted MDP size="+this.constrainedtransitionList.size());
+
+		System.out.println("Constrainted MDP size=" + this.constrainedtransitionList.size());
 
 	}
 

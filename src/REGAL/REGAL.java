@@ -11,6 +11,7 @@ import burlap.behavior.singleagent.QValue;
 import burlap.behavior.singleagent.learning.lspi.SARSData;
 import burlap.behavior.singleagent.planning.OOMDPPlanner;
 import burlap.behavior.singleagent.planning.QComputablePlanner;
+import burlap.behavior.singleagent.planning.commonpolicies.GreedyDeterministicQPolicy;
 import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
@@ -86,7 +87,7 @@ public class REGAL{
 		this.statetransition.setData(this.data);
 		// update transition set
 		System.out.println("update TD!");
-		this.statetransition.updateTransitionSet();
+		this.statetransition.updateTransitionSetOne();
 		
 
 		// constructed the constrained transition set

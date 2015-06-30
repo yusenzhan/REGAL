@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.List;
 import java.util.Random;
 
+import policy.MinQPolicy;
 import domain.GWRandomStateGenerator;
 import domain.NullTerminalFunction;
 import burlap.behavior.singleagent.Policy;
@@ -19,6 +20,7 @@ import burlap.behavior.singleagent.learning.lspi.SARSData;
 import burlap.behavior.singleagent.planning.OOMDPPlanner;
 import burlap.behavior.singleagent.planning.QComputablePlanner;
 import burlap.behavior.singleagent.planning.StateConditionTest;
+import burlap.behavior.singleagent.planning.commonpolicies.GreedyDeterministicQPolicy;
 import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.singleagent.planning.deterministic.TFGoalCondition;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
@@ -235,12 +237,13 @@ public class DAGGERLearning {
 
 		// create a Q-greedy policy from the planner
 		Policy teacher = new GreedyQPolicy((QComputablePlanner) planner);
+		Policy badteacher = new MinQPolicy((QComputablePlanner) planner);
 
 		Policy student = null;
 		Policy.RandomPolicy t=new Policy.RandomPolicy(domain);
 
 		DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student, 10,
-				1000, 1000, 0.5);
+				10000, 1000, 0.5);
 		// System.out.println(Math.pow(0.5, 0));
 		dagger.train();
 
