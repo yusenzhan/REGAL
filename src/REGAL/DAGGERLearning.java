@@ -17,6 +17,7 @@ import burlap.behavior.singleagent.auxiliary.valuefunctionvis.common.StateValueP
 import burlap.behavior.singleagent.auxiliary.valuefunctionvis.common.PolicyGlyphPainter2D.PolicyGlyphRenderStyle;
 //import burlap.behavior.singleagent.learning.lspi.SARSCollector;
 import burlap.behavior.singleagent.learning.lspi.SARSData;
+import burlap.behavior.singleagent.learning.lspi.SARSData.SARS;
 import burlap.behavior.singleagent.planning.OOMDPPlanner;
 import burlap.behavior.singleagent.planning.QComputablePlanner;
 import burlap.behavior.singleagent.planning.StateConditionTest;
@@ -46,6 +47,8 @@ import burlap.oomdp.singleagent.common.VisualActionObserver;
 
 public class DAGGERLearning {
 
+
+
 	protected Domain domain; // domain
 	protected TerminalFunction tf;
 	protected RewardFunction rf;
@@ -61,6 +64,7 @@ public class DAGGERLearning {
 	protected int maxSteps;
 	protected double H; // the upper bound of the span of all MDPs
 	protected double p; // probability seed
+	
 
 	/**
 	 * @param domain
@@ -92,31 +96,47 @@ public class DAGGERLearning {
 		this.maxSteps = maxSteps;
 		this.p = p;
 		this.currentTimeStep = 0;// current time is always 0
-		this.sg = new RandomStartStateGenerator((SADomain)this.domain,this.initialState);
+		this.sg = new RandomStartStateGenerator((SADomain) this.domain, this.initialState);
+		
 	}
 
 	/**
 	 * Training the REGAL algorithm and the policy the member student.
 	 */
 
-	public void train() {
+	public double[] train() {
 		MySARSCollector collector = new MySARSCollector(domain);
 		SARSData data = null;
 		// train the student
+		double[] datarecords=new double[this.maxInteration];
 		for (int i = 0; i < this.maxInteration; i++) {
 			System.out.println("This is interation " + i + " DAGGER");
 			double beta = getBetai(i, p);
 			// data = collector.collectDataFrom(this.initialState, this.rf,
 			// this.maxSteps, this.tf, null, this.teacher, this.student, beta);
-			// data = collector.collectNInstances(this.initialState, this.rf,
-			// maxSteps, maxSteps, this.tf, null, teacher,
-			// student, beta);
-			data = collector.collectNInstances(sg, this.rf, maxSteps, 50, this.tf, null, teacher, student, beta);
+			data = collector.collectNInstances(this.initialState, this.rf,maxSteps, maxSteps, this.tf, null, teacher,student, beta);
+			//data = collector.collectNInstances(sg, this.rf, maxSteps, 50, this.tf, null, teacher, student, beta);
+			datarecords[i]=record(data);
 			System.out.println(data.dataset.size());
 			student = regal.experiment(data);
 		}
+		return datarecords;
+	}
+
+	public double record(SARSData data) {
+
+		double reward = 0;
+		for (SARS sa : data.dataset) {
+
+			reward += sa.r;
+		}
+
+		return reward;
 
 	}
+
+
+	
 
 	/**
 	 * @param i
@@ -173,88 +193,6 @@ public class DAGGERLearning {
 		this.student = student;
 	}
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		// create the domain
-		GridWorldDomain gwdg = new GridWorldDomain(15, 15);
-		gwdg.setMapToFourRooms();
-		gwdg.setDeterministicTransitionDynamics();
-		/*int [][] map = new int[][]{
-				{0,0,0,0,0,1,0,0,0,0,0,0,0,0,0},
-				{0,0,0,0,0,1,0,0,1,1,1,0,0,0,0},
-				{0,0,0,0,0,1,0,0,0,0,0,1,0,0,0},
-				{0,0,0,0,0,1,0,0,0,0,0,0,1,0,0},
-				{0,0,0,0,0,1,0,0,0,0,0,0,1,0,0},
-				{1,0,1,1,1,1,1,1,0,1,1,1,1,1,1},
-				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-				{0,0,0,0,0,0,0,1,0,0,0,0,0,0,0},
-				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-				{0,0,0,0,1,0,0,0,0,0,0,0,0,0,0},
-				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-				{0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-		};
-		gwdg.setMap(map);*/
-		Domain domain = gwdg.generateDomain();
 
-		// create the state parser
-		StateParser sp = new GridWorldStateParser(domain);
-
-		// StateGenerator rStateGen = new MCRandomStateGenerator(domain);
-
-		// define the task
-		RewardFunction rf = new UniformCostRF();
-		// TerminalFunction tf = new NullTerminalFunction();
-		TerminalFunction tf = new SinglePFTF(domain.getPropFunction(GridWorldDomain.PFATLOCATION));
-		StateConditionTest goalCondition = new TFGoalCondition(tf);
-
-		// set up the initial state of the task
-		State initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
-		GridWorldDomain.setAgent(initialState, 0, 0);
-		GridWorldDomain.setLocation(initialState, 0, 10, 10);
-
-		// set up the state hashing system
-		DiscreteStateHashFactory hashingFactory = new DiscreteStateHashFactory();
-		hashingFactory.setAttributesForClass(GridWorldDomain.CLASSAGENT,
-				domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
-
-		// add visual observer
-
-		//VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain,
-				//gwdg.getMap()));
-
-		//((SADomain) domain).setActionObserverForAllAction(observer);
-		//observer.initGUI();
-
-		// construct the teacher
-		OOMDPPlanner planner = new MyVI(domain, rf, tf, 1, hashingFactory, 0.001, 100);
-		planner.planFromState(initialState);
-
-		// create a Q-greedy policy from the planner
-		Policy teacher = new GreedyQPolicy((QComputablePlanner) planner);
-		Policy badteacher = new MinQPolicy((QComputablePlanner) planner);
-
-		Policy student = null;
-		Policy.RandomPolicy t=new Policy.RandomPolicy(domain);
-
-		DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student, 10,
-				10000, 1000, 0.5);
-		// System.out.println(Math.pow(0.5, 0));
-		dagger.train();
-
-		Policy p = dagger.getStudent();
-
-		// record the plan results to a file
-		p.evaluateBehavior(initialState, rf, tf);
-
-		// visualize the value function and policy
-		//dagger.valueFunctionVisualize((QComputablePlanner) planner, p);
-
-	}
 
 }

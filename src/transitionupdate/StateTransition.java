@@ -107,10 +107,9 @@ public class StateTransition {
 			this.transitionCountList.add(InitialTD);
 		}
 
-		Map<StateHashTuple, List<ActionTransitions>> tempCountTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
-				this.transitionCountList.get(this.transitionCountList.size() - 1));
-		Map<StateHashTuple, List<ActionTransitions>> tempTD = new HashMap<StateHashTuple, List<ActionTransitions>>(
-				this.transitionList.get(this.transitionList.size() - 1));
+		Map<StateHashTuple, List<ActionTransitions>> tempCountTD = this.transitionCountList
+				.get(this.transitionCountList.size() - 1);
+		Map<StateHashTuple, List<ActionTransitions>> tempTD = this.transitionList.get(this.transitionList.size() - 1);
 		for (SARS sars : data.dataset) {
 			// update the transition set
 			// set the base as the last element of the list
@@ -162,7 +161,7 @@ public class StateTransition {
 			}
 		}
 
-		System.out.println("MDP size=" + this.transitionList.size());
+		//System.out.println("MDP size=" + this.transitionList.size());
 
 	}
 
@@ -231,7 +230,7 @@ public class StateTransition {
 
 		}
 
-		System.out.println("MDP size=" + this.transitionList.size());
+		//System.out.println("MDP size=" + this.transitionList.size());
 
 	}
 
@@ -318,7 +317,7 @@ public class StateTransition {
 			}
 		}
 
-		System.out.println("Constrainted MDP size=" + this.constrainedtransitionList.size());
+		//System.out.println("Constrainted MDP size=" + this.constrainedtransitionList.size());
 
 	}
 
