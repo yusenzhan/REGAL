@@ -125,8 +125,8 @@ public class Experiment {
 
 		for (int i = 0; i < maxTrial; i++) {
 			System.out.println("--------------------------trial=" + i + "-----------------------------");
-			DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, badteacher, student,
-					20, 200, 1000, 1);
+			DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student,
+					20, 200, 1000, 0.5);
 			// System.out.println(Math.pow(0.5, 0));
 			double[] temparray = dagger.train();
 			ex.records[i] = Arrays.copyOf(temparray, temparray.length);
