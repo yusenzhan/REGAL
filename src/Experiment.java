@@ -11,6 +11,7 @@ import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.singleagent.planning.deterministic.TFGoalCondition;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
+import burlap.domain.singleagent.gridworld.GridWorldRewardFunction;
 import burlap.domain.singleagent.gridworld.GridWorldStateParser;
 import burlap.oomdp.auxiliary.StateParser;
 import burlap.oomdp.core.Domain;
@@ -63,7 +64,7 @@ public class Experiment {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		// create the domain
-		GridWorldDomain gwdg = new GridWorldDomain(15, 15);
+		GridWorldDomain gwdg = new GridWorldDomain(11, 11);
 		gwdg.setMapToFourRooms();
 		gwdg.setDeterministicTransitionDynamics();
 		/*
@@ -85,7 +86,8 @@ public class Experiment {
 		// StateGenerator rStateGen = new MCRandomStateGenerator(domain);
 
 		// define the task
-		RewardFunction rf = new UniformCostRF();
+		GridWorldRewardFunction rf = new GridWorldRewardFunction(domain,-1);
+		rf.setReward(gwdg.getHeight()-1,gwdg.getWidth()-1,1);
 		// TerminalFunction tf = new NullTerminalFunction();
 		TerminalFunction tf = new SinglePFTF(domain.getPropFunction(GridWorldDomain.PFATLOCATION));
 		StateConditionTest goalCondition = new TFGoalCondition(tf);
@@ -125,7 +127,11 @@ public class Experiment {
 
 		for (int i = 0; i < maxTrial; i++) {
 			System.out.println("--------------------------trial=" + i + "-----------------------------");
+<<<<<<< HEAD
 			DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, teacher, student,
+=======
+			DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, randomteacher, student,
+>>>>>>> cd229fce304105bf761b9a2b1ce4f37b98b96701
 					20, 200, 1000, 0.5);
 			// System.out.println(Math.pow(0.5, 0));
 			double[] temparray = dagger.train();

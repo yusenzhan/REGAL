@@ -144,11 +144,12 @@ public class MyVI extends ValueFunctionPlanner {
 
 	@Override
 	public void resetPlannerResults() {
-		// super.resetPlannerResults();
+		//super.resetPlannerResults();
 		this.valueFunction.clear();
-		// this.foundReachableStates = false;
+		//this.foundReachableStates = false;
 		this.hasRunVI = false;
 		this.stopRun = 0;
+		this.transitionDynamics.clear();
 	}
 
 	/**
