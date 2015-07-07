@@ -161,7 +161,7 @@ public class StateTransition {
 			}
 		}
 
-		//System.out.println("MDP size=" + this.transitionList.size());
+		System.out.println("MDP size=" + this.transitionList.size());
 
 	}
 
@@ -317,7 +317,7 @@ public class StateTransition {
 			}
 		}
 
-		//System.out.println("Constrainted MDP size=" + this.constrainedtransitionList.size());
+		System.out.println("Constrainted MDP size=" + this.constrainedtransitionList.size());
 
 	}
 
