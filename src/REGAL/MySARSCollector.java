@@ -58,6 +58,7 @@ public class MySARSCollector extends SARSCollector {
 			//System.out.println("Teacher");
 			action=(GroundedAction)teacher.getAction(s);
 		}else{
+			//System.out.println("Student");
 			action=(GroundedAction)student.getAction(s);
 		}
 		

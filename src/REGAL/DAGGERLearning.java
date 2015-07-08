@@ -110,8 +110,8 @@ public class DAGGERLearning {
 		// train the student
 		double[] datarecords=new double[this.maxInteration];
 		for (int i = 0; i < this.maxInteration; i++) {
-			System.out.println("This is interation " + i + " DAGGER");
 			double beta = getBetai(i, p);
+			System.out.println("This is interation " + i + " DAGGER "+beta);
 			// data = collector.collectDataFrom(this.initialState, this.rf,
 			// this.maxSteps, this.tf, null, this.teacher, this.student, beta);
 			data = collector.collectNInstances(this.initialState, this.rf,maxSteps, maxSteps, this.tf, null, teacher,student, beta);
@@ -147,6 +147,8 @@ public class DAGGERLearning {
 	 */
 
 	public double getBetai(int i, double p) {
+		
+		//System.out.println("beta="+Math.pow(p, i));
 
 		return Math.pow(p, i);
 

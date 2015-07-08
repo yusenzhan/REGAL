@@ -13,17 +13,20 @@ import burlap.behavior.statehashing.DiscreteStateHashFactory;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldRewardFunction;
 import burlap.domain.singleagent.gridworld.GridWorldStateParser;
+import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
 import burlap.oomdp.auxiliary.StateParser;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.singleagent.RewardFunction;
+import burlap.oomdp.singleagent.SADomain;
 import burlap.oomdp.singleagent.common.SinglePFTF;
 import burlap.oomdp.singleagent.common.UniformCostRF;
+import burlap.oomdp.singleagent.common.VisualActionObserver;
 
 public class Experiment {
 	
-	public static int maxTrial = 3;
+	public static int maxTrial = 10;
 
 	public double[][] records;
 	public double[] prints;
@@ -32,15 +35,16 @@ public class Experiment {
 	public Experiment(int maxInteration) {
 
 		this.maxInteration = maxInteration;
-		this.records = new double[this.maxInteration][maxTrial];
+		this.records = new double[maxTrial][maxInteration];
 		this.prints = new double[this.maxInteration];
 	}
 
 	public void computeMean() {
-		double reward = 0;
+	
 		for (int i = 0; i < this.maxInteration; i++) {
+			double reward = 0;
 			for (int j = 0; j < maxTrial; j++) {
-				reward += records[i][j];
+				reward += records[j][i];
 			}
 
 			this.prints[i] = reward / maxTrial;
@@ -56,6 +60,11 @@ public class Experiment {
 			System.out.println(i + " " + prints[i]);
 		}
 
+	}
+	
+	public void save(){
+		
+		
 	}
 
 	/**
@@ -104,12 +113,10 @@ public class Experiment {
 
 		// add visual observer
 
-		// VisualActionObserver observer = new VisualActionObserver(domain,
-		// GridWorldVisualizer.getVisualizer(domain,
-		// gwdg.getMap()));
+		// VisualActionObserver observer = new VisualActionObserver(domain,GridWorldVisualizer.getVisualizer(domain, gwdg.getMap()));
 
-		// ((SADomain) domain).setActionObserverForAllAction(observer);
-		// observer.initGUI();
+		//((SADomain) domain).setActionObserverForAllAction(observer);
+		//observer.initGUI();
 
 		// construct the teacher
 		OOMDPPlanner planner = new MyVI(domain, rf, tf, 1, hashingFactory, 0.001, 100);
@@ -128,12 +135,13 @@ public class Experiment {
 		for (int i = 0; i < maxTrial; i++) {
 			System.out.println("--------------------------trial=" + i + "-----------------------------");
 
-			DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, randomteacher, student,
+			DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, badteacher, student,
 					20, 200, 1000, 0.5);
 			// System.out.println(Math.pow(0.5, 0));
 			double[] temparray = dagger.train();
-			ex.records[i] = Arrays.copyOf(temparray, temparray.length);
-
+			for(int j=0;j<temparray.length;j++){
+				ex.records[i][j]=temparray[j];
+			}
 		}
 
 		ex.computeMean();

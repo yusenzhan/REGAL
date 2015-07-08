@@ -381,7 +381,7 @@ public class MyVI extends ValueFunctionPlanner {
 	 *            the optimalGain to set
 	 */
 	public void setOptimalGain(Map<StateHashTuple, Double> optimalGain) {
-		this.optimalGain = optimalGain;
+		this.optimalGain = new HashMap<StateHashTuple, Double>(optimalGain);
 	}
 
 	/**
