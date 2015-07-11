@@ -1,3 +1,7 @@
+
+import linearchainmdp.LinearChainMDPDomain;
+import linearchainmdp.LinearChainMDPRewardFunction;
+import linearchainmdp.LinearChainMDPTerminalFunction;
 import policy.MinQPolicy;
 import utility.DataFile;
 import REGAL.DAGGERLearning;
@@ -22,15 +26,15 @@ import burlap.oomdp.singleagent.common.SinglePFTF;
 import burlap.oomdp.singleagent.common.UniformCostRF;
 import burlap.oomdp.singleagent.common.VisualActionObserver;
 
-public class Experiment {
+public class ExperimentLinear {
 	
-	public static int maxTrial = 10;
+	public static int maxTrial = 1;
 
 	public double[][] records;
 	public double[] prints;
 	public int maxInteration;
 
-	public Experiment(int maxInteration) {
+	public ExperimentLinear(int maxInteration) {
 
 		this.maxInteration = maxInteration;
 		this.records = new double[maxTrial][maxInteration];
@@ -78,38 +82,21 @@ public class Experiment {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		// create the domain
-		GridWorldDomain gwdg = new GridWorldDomain(11, 11);
-		gwdg.setMapToFourRooms();
-		gwdg.setDeterministicTransitionDynamics();
-		/*
-		 * int [][] map = new int[][]{ {0,0,0,0,0,1,0,0,0,0,0,0,0,0,0},
-		 * {0,0,0,0,0,1,0,0,1,1,1,0,0,0,0}, {0,0,0,0,0,1,0,0,0,0,0,1,0,0,0},
-		 * {0,0,0,0,0,1,0,0,0,0,0,0,1,0,0}, {0,0,0,0,0,1,0,0,0,0,0,0,1,0,0},
-		 * {1,0,1,1,1,1,1,1,0,1,1,1,1,1,1}, {0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-		 * {0,0,0,0,1,0,0,1,0,0,0,0,0,0,0}, {0,0,0,0,0,0,0,1,0,0,0,0,0,0,0},
-		 * {0,0,0,0,1,0,0,1,0,0,0,0,0,0,0}, {0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-		 * {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0}, {0,0,0,0,1,0,0,1,0,0,0,0,0,0,0},
-		 * {0,0,0,0,1,0,0,1,0,0,0,0,0,0,0}, {0,0,0,0,1,0,0,1,0,0,0,0,0,0,0}, };
-		 * gwdg.setMap(map);
-		 */
+		LinearChainMDPDomain gwdg = new LinearChainMDPDomain(50,0.5);
+
+
 		Domain domain = gwdg.generateDomain();
 
-		// create the state parser
-		StateParser sp = new GridWorldStateParser(domain);
-
-		// StateGenerator rStateGen = new MCRandomStateGenerator(domain);
-
 		// define the task
-		GridWorldRewardFunction rf = new GridWorldRewardFunction(domain,-1);
-		rf.setReward(gwdg.getHeight()-1,gwdg.getWidth()-1,1);
+		LinearChainMDPRewardFunction rf = new LinearChainMDPRewardFunction(50);
+		
+		
 		// TerminalFunction tf = new NullTerminalFunction();
-		TerminalFunction tf = new SinglePFTF(domain.getPropFunction(GridWorldDomain.PFATLOCATION));
+		TerminalFunction tf = new LinearChainMDPTerminalFunction(50,true);
 		StateConditionTest goalCondition = new TFGoalCondition(tf);
 
 		// set up the initial state of the task
-		State initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
-		GridWorldDomain.setAgent(initialState, 0, 0);
-		GridWorldDomain.setLocation(initialState, 0, 10, 10);
+		State initialState = LinearChainMDPDomain.getState(domain);
 
 		// set up the state hashing system
 		DiscreteStateHashFactory hashingFactory = new DiscreteStateHashFactory();
@@ -151,8 +138,8 @@ public class Experiment {
 
 		ex.computeMean();
 		//ex.print();
-		ex.save("onteacher.txt");
-
+		ex.save("linearnoteacher.txt");
+		
 		// Policy p = dagger.getStudent();
 
 		// record the plan results to a file
