@@ -23,16 +23,12 @@ import burlap.oomdp.singleagent.common.UniformCostRF;
 import burlap.oomdp.singleagent.common.VisualActionObserver;
 
 public class Experiment {
-
+	
 	public static int maxTrial = 10;
 
 	public double[][] records;
 	public double[] prints;
 	public int maxInteration;
-
-	public enum Extype {
-		optiteacher, randteacher, badteacher, gridoptimalpolicy, gridnoadvice
-	}
 
 	public Experiment(int maxInteration) {
 
@@ -42,7 +38,7 @@ public class Experiment {
 	}
 
 	public void computeMean() {
-
+	
 		for (int i = 0; i < this.maxInteration; i++) {
 			double reward = 0;
 			for (int j = 0; j < maxTrial; j++) {
@@ -52,9 +48,9 @@ public class Experiment {
 			this.prints[i] = reward / maxTrial;
 		}
 	}
-
+	
 	public void print() {
-
+		
 		System.out.println("---------------------------------Mean reward!----------------------------");
 
 		for (int i = 0; i < this.maxInteration; i++) {
@@ -63,16 +59,15 @@ public class Experiment {
 		}
 
 	}
-
-	public void save(String filename) {
-
-		DataFile datafile = new DataFile(filename);
-		System.out.println("---------------------------------Write to File:" + filename
-				+ "----------------------------");
+	
+	public void save(String filename){
+		
+		DataFile datafile=new DataFile(filename);
+		System.out.println("---------------------------------Write to File:"+filename+"----------------------------");
 
 		for (int i = 0; i < this.maxInteration; i++) {
 
-			datafile.append(i + " " + prints[i] + "\n");
+			datafile.append(i+" "+prints[i]+"\n");
 		}
 		datafile.close();
 	}
@@ -85,8 +80,7 @@ public class Experiment {
 		// create the domain
 		GridWorldDomain gwdg = new GridWorldDomain(11, 11);
 		gwdg.setMapToFourRooms();
-		gwdg.setProbSucceedTransitionDynamics(0.8);
-		//gwdg.setDeterministicTransitionDynamics();
+		gwdg.setDeterministicTransitionDynamics();
 		/*
 		 * int [][] map = new int[][]{ {0,0,0,0,0,1,0,0,0,0,0,0,0,0,0},
 		 * {0,0,0,0,0,1,0,0,1,1,1,0,0,0,0}, {0,0,0,0,0,1,0,0,0,0,0,1,0,0,0},
@@ -106,8 +100,8 @@ public class Experiment {
 		// StateGenerator rStateGen = new MCRandomStateGenerator(domain);
 
 		// define the task
-		GridWorldRewardFunction rf = new GridWorldRewardFunction(domain, -1);
-		rf.setReward(gwdg.getHeight() - 1, gwdg.getWidth() - 1, 1);
+		GridWorldRewardFunction rf = new GridWorldRewardFunction(domain,-1);
+		rf.setReward(gwdg.getHeight()-1,gwdg.getWidth()-1,1);
 		// TerminalFunction tf = new NullTerminalFunction();
 		TerminalFunction tf = new SinglePFTF(domain.getPropFunction(GridWorldDomain.PFATLOCATION));
 		StateConditionTest goalCondition = new TFGoalCondition(tf);
@@ -124,12 +118,10 @@ public class Experiment {
 
 		// add visual observer
 
-		// VisualActionObserver observer = new
-		// VisualActionObserver(domain,GridWorldVisualizer.getVisualizer(domain,
-		// gwdg.getMap()));
+		// VisualActionObserver observer = new VisualActionObserver(domain,GridWorldVisualizer.getVisualizer(domain, gwdg.getMap()));
 
-		// ((SADomain) domain).setActionObserverForAllAction(observer);
-		// observer.initGUI();
+		//((SADomain) domain).setActionObserverForAllAction(observer);
+		//observer.initGUI();
 
 		// construct the teacher
 		OOMDPPlanner planner = new MyVI(domain, rf, tf, 1, hashingFactory, 0.001, 100);
@@ -141,117 +133,25 @@ public class Experiment {
 		Policy.RandomPolicy randomteacher = new Policy.RandomPolicy(domain);
 
 		Policy student = null;
-
-		int maxinteration = 20;
-		int[] maxsteps = { 10, 20, 50, 100, 200 };
-		Experiment ex = null;
-
-		/*for (int maxstep : maxsteps) {
-			for (Extype exp : Extype.values()) {
-				switch (exp) {
-				case optiteacher:
-					ex = new Experiment(maxinteration);
-					for (int i = 0; i < maxTrial; i++) {
-						System.out.println("--------------------------trial=" + i + "-----------------------------");
-
-						DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory,
-								teacher, student, maxinteration, maxstep, 1000, 0.5);
-						// System.out.println(Math.pow(0.5, 0));
-						double[] temparray = dagger.train();
-						for (int j = 0; j < temparray.length; j++) {
-							ex.records[i][j] = temparray[j];
-						}
-					}
-					ex.computeMean();
-					ex.save(exp.toString() + maxstep + ".txt");
-					break;
-				case randteacher:
-					ex = new Experiment(maxinteration);
-					for (int i = 0; i < maxTrial; i++) {
-						System.out.println("--------------------------trial=" + i + "-----------------------------");
-
-						DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory,
-								randomteacher, student, maxinteration, maxstep, 1000, 0.5);
-						// System.out.println(Math.pow(0.5, 0));
-						double[] temparray = dagger.train();
-						for (int j = 0; j < temparray.length; j++) {
-							ex.records[i][j] = temparray[j];
-						}
-					}
-					ex.computeMean();
-					ex.save(exp.toString() + maxstep + ".txt");
-					break;
-				case badteacher:
-					ex = new Experiment(maxinteration);
-					for (int i = 0; i < maxTrial; i++) {
-						System.out.println("--------------------------trial=" + i + "-----------------------------");
-
-						DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory,
-								badteacher, student, maxinteration, maxstep, 1000, 0.5);
-						// System.out.println(Math.pow(0.5, 0));
-						double[] temparray = dagger.train();
-						for (int j = 0; j < temparray.length; j++) {
-							ex.records[i][j] = temparray[j];
-						}
-					}
-					ex.computeMean();
-					ex.save(exp.toString() + maxstep + ".txt");
-					break;
-				case gridnoadvice:
-					ex = new Experiment(maxinteration);
-					for (int i = 0; i < maxTrial; i++) {
-						System.out.println("--------------------------trial=" + i + "-----------------------------");
-
-						DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory,
-								randomteacher, student, maxinteration, maxstep, 1000, 0);
-						// System.out.println(Math.pow(0.5, 0));
-						double[] temparray = dagger.train();
-						for (int j = 0; j < temparray.length; j++) {
-							ex.records[i][j] = temparray[j];
-						}
-					}
-					ex.computeMean();
-					ex.save(exp.toString() + maxstep + ".txt");
-					break;
-				case gridoptimalpolicy:
-					ex = new Experiment(maxinteration);
-					for (int i = 0; i < maxTrial; i++) {
-						System.out.println("--------------------------trial=" + i + "-----------------------------");
-
-						DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory,
-								teacher, student, maxinteration, maxstep, 1000, 1);
-						// System.out.println(Math.pow(0.5, 0));
-						double[] temparray = dagger.train();
-						for (int j = 0; j < temparray.length; j++) {
-							ex.records[i][j] = temparray[j];
-						}
-					}
-					ex.computeMean();
-					ex.save(exp.toString() + maxstep + ".txt");
-					break;
-
-				default:
-					throw new RuntimeException("unreachable");
-
-				}
-			}
-		}*/
 		
-		ex = new Experiment(maxinteration);
+		
+		Experiment ex=new Experiment(20);
+
 		for (int i = 0; i < maxTrial; i++) {
 			System.out.println("--------------------------trial=" + i + "-----------------------------");
 
-			DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory,
-					teacher, student, maxinteration, 200, 1000, 0.5);
+			DAGGERLearning dagger = new DAGGERLearning(domain, tf, rf, initialState, hashingFactory, randomteacher, student,
+					20, 200, 1000, 0);
 			// System.out.println(Math.pow(0.5, 0));
 			double[] temparray = dagger.train();
-			for (int j = 0; j < temparray.length; j++) {
-				ex.records[i][j] = temparray[j];
+			for(int j=0;j<temparray.length;j++){
+				ex.records[i][j]=temparray[j];
 			}
 		}
-		
+
 		ex.computeMean();
-		ex.save("test.txt");
+		//ex.print();
+		ex.save("onteacher.txt");
 
 		// Policy p = dagger.getStudent();
 

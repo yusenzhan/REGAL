@@ -146,10 +146,10 @@ public class MyVI extends ValueFunctionPlanner {
 	public void resetPlannerResults() {
 		//super.resetPlannerResults();
 		this.valueFunction.clear();
-		//this.foundReachableStates = true;
+		//this.foundReachableStates = false;
 		this.hasRunVI = false;
 		this.stopRun = 0;
-		//this.transitionDynamics.clear();
+		this.transitionDynamics.clear();
 	}
 
 	/**
@@ -381,7 +381,7 @@ public class MyVI extends ValueFunctionPlanner {
 	 *            the optimalGain to set
 	 */
 	public void setOptimalGain(Map<StateHashTuple, Double> optimalGain) {
-		this.optimalGain = optimalGain;
+		this.optimalGain = new HashMap<StateHashTuple, Double>(optimalGain);
 	}
 
 	/**
